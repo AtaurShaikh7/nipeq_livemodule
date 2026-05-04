@@ -1,0 +1,73 @@
+update daily_process_stats 
+set currdatadate=(select currdatadate from daily_process_stats where process_name = 'SRC DATA COLLATION')
+,lastdatadate=(select lastdatadate from daily_process_stats where process_name = 'SRC DATA COLLATION')
+,rundate=(select rundate from daily_process_stats where process_name = 'SRC DATA COLLATION'),dataready=0,status=null 
+where process_name in ('ETL STAGE 1','ETL STAGE 2');
+
+EXECUTE SP_LDG_FUT_OPTSMASTER_XLS;
+select COUNT(*) as future_options_master_src from future_options_master_src;
+select status from daily_process_status where process_name = 'ETL STAGE 1'; -- add this after all sp_ldg stored proc exec, 
+--if status is not null, stop the automation and write it in log file. Alos write count(*) as well in log file
+
+EXECUTE SP_LDG_CORPACTEXC_XLS;
+select COUNT(*) as CORPORATE_ACTIONS_EXC_SRC from CORPORATE_ACTIONS_EXC_SRC where EFFECTIVE_DATE=effdate;
+
+EXECUTE SP_LDG_CORPACTIONS_XLS;
+select COUNT(*) as CORPORATE_ACTIONS_SRC from CORPORATE_ACTIONS_SRC where EX_DATE=effdate;
+
+EXECUTE SP_LDG_DAILY_EOD_PRICES_XLS;
+select COUNT(*) as DAILY_SECURITY_PRICES_SRC from DAILY_SECURITY_PRICES_SRC where EFFECTIVE_DATE=effdate;
+
+EXECUTE SP_LDG_INDEX_RETURNS_XLS;
+select COUNT(*) as INDEX_RETURNS_SRC from INDEX_RETURNS_SRC where EFFECTIVE_DATE=effdate;
+
+EXECUTE SP_LDG_NAV_RETURNS_XLS;
+select COUNT(*) as NAV_RETURNS_SRC from NAV_RETURNS_SRC where EFFECTIVE_DATE=effdate;
+
+EXECUTE SP_LDG_FUNDHOLDINGS_XLS;
+select COUNT(*) as FUND_HOLDINGS_SRC from FUND_HOLDINGS_SRC where HOLDING_DATE=effdate;
+
+EXECUTE SP_LDG_DAILYPRICES_XLS;
+select COUNT(*) as DAILYPRICE_SRC from DAILYPRICE_SRC where EFFECTIVE_DATE=effdate;
+
+EXECUTE SP_LDG_TXNDATA_XLS;
+select COUNT(*) as TRANSACTION_DATA_SRC from TRANSACTION_DATA_SRC where TRANSACTION_DATE=effdate;
+
+EXECUTE SP_LDG_FUNDNAV_XLS;
+select COUNT(*) as Fund_NAV_Src from Fund_NAV_Src where VALUE_DATE=effdate;
+
+EXECUTE SP_LDG_INDEXDATA_XLS;
+select COUNT(*) as Index_Data_Src from Index_Data_Src where VALUE_DATE=effdate;
+
+EXECUTE SP_LDG_INDEXDATATRI_XLS;
+select COUNT(*) as Index_Data_Src from Index_Data_Src where VALUE_DATE=effdate and upper(index_code) like '%TRI%';
+
+EXECUTE SP_LDG_INDEXPRICES_XLS;
+select COUNT(*) as Index_Prices_Src from Index_Prices_Src where VALUE_DATE=effdate ;
+
+EXECUTE SP_LDG_AVG_VOL_XLS;
+select COUNT(*) as AVERAGE_VOLUME_SRC from AVERAGE_VOLUME_SRC where EFFECTIVE_DATE=effdate ;
+
+EXECUTE SP_LDG_INDEXDATA_MODEL_XLS;
+EXECUTE SP_LDG_MODELPORTFOLIO_XLS;
+EXECUTE SP_LDG_DION_FNO_MASTER_XLS;
+select COUNT(*) as DION_FNO_MASTER_SRC from DION_FNO_MASTER_SRC;
+
+
+update daily_process_stats 
+set dataready=1 
+where process_name in ('ETL STAGE 1');
+
+execute sp_transform_main;
+select status from daily_process_status where process_name = 'ETL STAGE 2';
+---- status must be null after completion of sp_transform_main proc or else log the error
+
+update daily_process_stats set currdatadate=(select currdatadate from daily_process_stats where process_name = 'SRC DATA COLLATION')
+,lastdatadate=(select lastdatadate from daily_process_stats where process_name = 'SRC DATA COLLATION')
+,rundate=(select rundate from daily_process_stats where process_name = 'SRC DATA COLLATION'),dataready=0 where process_name in ('DAILY ATTRIB');
+
+execute sp_valat_main;
+
+update daily_process_stats set dataready=1 where process_name in ('DAILY ATTRIB');
+update business_calendar set dataload_status=1 where effective_date in (select max(effective_date) from fund_holdings) and businessday_flag=1;
+commit;

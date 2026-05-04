@@ -1,0 +1,111 @@
+{
+  "sectorPattern": [
+    { "sector": "FINANCIALS",              "indexPct": 28.6, "fundPct": 23.4, "owUw": -5.2 },
+    { "sector": "INDUSTRIALS",             "indexPct": 10.6, "fundPct": 19.7, "owUw":  9.1 },
+    { "sector": "AUTOMOBILES",             "indexPct":  8.1, "fundPct":  7.0, "owUw": -1.1 },
+    { "sector": "CONSUMER PRODUCTS",       "indexPct":  8.1, "fundPct": 11.8, "owUw":  3.7 },
+    { "sector": "CONSUMER SERVICES",       "indexPct":  6.9, "fundPct": 13.4, "owUw":  6.5 },
+    { "sector": "HEALTHCARE",              "indexPct":  5.9, "fundPct":  7.5, "owUw":  1.6 },
+    { "sector": "IT SERVICES",             "indexPct":  5.5, "fundPct":  3.5, "owUw": -2.0 },
+    { "sector": "OIL & GAS",              "indexPct":  5.5, "fundPct":  1.9, "owUw": -3.6 },
+    { "sector": "COMMODITIES",             "indexPct":  4.9, "fundPct":  0.8, "owUw": -4.1 },
+    { "sector": "POWER UTILITIES",         "indexPct":  3.5, "fundPct":  5.6, "owUw":  2.1 },
+    { "sector": "TELECOM",                 "indexPct":  3.0, "fundPct":  0.0, "owUw": -3.0 },
+    { "sector": "CHEMICALS",               "indexPct":  2.9, "fundPct":  0.5, "owUw": -2.4 },
+    { "sector": "OTHER TECH",              "indexPct":  2.7, "fundPct":  3.3, "owUw":  0.6 },
+    { "sector": "BUILDING MATERIAL",       "indexPct":  2.2, "fundPct":  0.8, "owUw": -1.4 },
+    { "sector": "INFRA. & CONSTRUCTION",   "indexPct":  0.7, "fundPct":  0.2, "owUw": -0.5 },
+    { "sector": "UNKNOWN / MISCELLANEOUS", "indexPct":  0.6, "fundPct":  0.0, "owUw": -0.6 },
+    { "sector": "MISC.",                   "indexPct":  0.3, "fundPct":  0.0, "owUw": -0.3 },
+    { "sector": "METALS & MINING",         "indexPct":  0.1, "fundPct":  0.0, "owUw": -0.1 },
+    { "sector": "CASH & CASH EQUIVALENTS", "indexPct":  0.0, "fundPct":  0.7, "owUw":  0.7 }
+  ],
+
+  "top20Stocks": [
+    { "company": "HDFC Bank Ltd",              "rating": "A", "indexPct": 4.3, "fundPct": 6.0 },
+    { "company": "ICICI Bank Ltd",             "rating": "B", "indexPct": 3.4, "fundPct": 4.4 },
+    { "company": "Axis Bank Ltd",              "rating": "B", "indexPct": 1.4, "fundPct": 3.7 },
+    { "company": "Infosys Ltd",                "rating": "A", "indexPct": 1.6, "fundPct": 2.7 },
+    { "company": "GE Vernova T&D India Ltd",   "rating": "C", "indexPct": 0.3, "fundPct": 2.6 },
+    { "company": "NTPC Ltd",                   "rating": "B", "indexPct": 0.7, "fundPct": 2.3 },
+    { "company": "Linde India Ltd",            "rating": "C", "indexPct": 0.1, "fundPct": 2.1 },
+    { "company": "Max Financial Services Ltd", "rating": "B", "indexPct": 0.3, "fundPct": 2.0 },
+    { "company": "Reliance Industries Ltd",    "rating": "B", "indexPct": 3.3, "fundPct": 1.9 },
+    { "company": "Larsen & Toubro Ltd",        "rating": "B", "indexPct": 1.7, "fundPct": 1.9 },
+    { "company": "Motherson Sumi Systems Ltd", "rating": "C", "indexPct": 0.2, "fundPct": 1.6 },
+    { "company": "Tata Power Co Ltd",          "rating": "B", "indexPct": 0.3, "fundPct": 1.6 },
+    { "company": "ITC Ltd",                    "rating": "B", "indexPct": 1.0, "fundPct": 1.6 },
+    { "company": "Bajaj Finance Ltd",          "rating": "A", "indexPct": 0.9, "fundPct": 1.5 },
+    { "company": "FSN E-Commerce Ventures",    "rating": "B", "indexPct": 0.2, "fundPct": 1.5 },
+    { "company": "Vesuvius India Ltd",         "rating": "B", "indexPct": 0.0, "fundPct": 1.4 },
+    { "company": "Swiggy Ltd",                 "rating": "B", "indexPct": 0.3, "fundPct": 1.4 },
+    { "company": "Voltas Ltd",                 "rating": "B", "indexPct": 0.2, "fundPct": 1.3 },
+    { "company": "EIH Ltd",                    "rating": "C", "indexPct": 0.1, "fundPct": 1.3 },
+    { "company": "State Bank of India",        "rating": "C", "indexPct": 1.6, "fundPct": 1.3 }
+  ],
+
+  "historicalPerformance": [
+    { "peer": "REOF",                               "m1": 7.5,  "m3":  4.2, "m6": -2.7, "y1":  8.6, "y3": 21.4, "y5": 22.2, "isHighlight": true },
+    { "peer": "NIFTY500 MULTICAP 50:25:25",         "m1": 15.1, "m3":  5.8, "m6": -5.2, "y1":  4.0, "y3": 21.5, "y5": 18.6, "isIndex": true },
+    { "peer": "Franklin India Flexi Cap Fund",       "m1":  7.0, "m3": -1.4, "m6": -5.0, "y1":  6.7, "y3": 16.3, "y5": 14.2 },
+    { "peer": "HDFC Hybrid Equity Fund",             "m1":  3.9, "m3": -3.2, "m6": -5.6, "y1":  0.3, "y3":  9.8, "y5": 11.6 },
+    { "peer": "ICICI Prudential Multi Asset F",      "m1":  0.0, "m3":  0.0, "m6":  0.0, "y1":  0.0, "y3":  0.0, "y5":  0.0 },
+    { "peer": "ICICI Prudential Value Discove",      "m1":  3.9, "m3": -3.1, "m6": -3.3, "y1":  5.9, "y3": 19.0, "y5": 19.5 },
+    { "peer": "Kotak Equity Opportunities Fund",     "m1":  7.0, "m3":  0.8, "m6": -1.1, "y1": 10.5, "y3": 18.8, "y5": 16.6 },
+    { "peer": "HSBC Business Cycles Fund",           "m1": 10.4, "m3":  3.6, "m6": -4.3, "y1":  4.4, "y3": 19.0, "y5": 17.5 },
+    { "peer": "HSBC Value Fund",                     "m1":  7.7, "m3":  2.1, "m6":  1.0, "y1": 12.2, "y3": 23.0, "y5": 20.3 },
+    { "peer": "L&T Large and Midcap Fund",           "m1":  0.0, "m3":  0.0, "m6":  0.0, "y1":  0.0, "y3":  0.0, "y5":  0.0 },
+    { "peer": "Tata Equity P/E Fund",                "m1":  6.5, "m3": -0.2, "m6": -1.9, "y1":  6.8, "y3": 18.8, "y5": 17.1 },
+    { "peer": "Tata Large & Mid Cap Fund",           "m1":  6.0, "m3": -3.6, "m6": -9.1, "y1": -4.0, "y3": 11.0, "y5": 12.4 },
+    { "peer": "Templeton India Equity Income",       "m1":  0.0, "m3":  0.0, "m6":  0.0, "y1":  0.0, "y3":  0.0, "y5":  0.0 },
+    { "peer": "DSP Equity Fund",                     "m1":  7.9, "m3": -0.5, "m6": -3.8, "y1":  3.4, "y3": 16.5, "y5": 13.4 },
+    { "peer": "HSBC Multi Cap Equity Fund",          "m1":  9.7, "m3":  2.4, "m6": -2.5, "y1":  9.4, "y3": 19.1, "y5": 16.1 },
+    { "peer": "ICICI Prudential Multicap Fund",      "m1": 10.2, "m3":  6.3, "m6":  1.7, "y1":  9.2, "y3": 21.2, "y5": 18.7 },
+    { "peer": "Invesco India Contra Fund",           "m1":  7.4, "m3": -2.4, "m6": -6.4, "y1":  2.5, "y3": 19.0, "y5": 16.3 },
+    { "peer": "Mirae Asset India Equity Fund",       "m1":  6.4, "m3": -2.9, "m6": -4.9, "y1":  3.7, "y3": 12.4, "y5": 11.6 },
+    { "peer": "Motilal Oswal Multicap 35 Fund",      "m1":  7.9, "m3": -3.6, "m6": -9.9, "y1":  0.6, "y3": 21.2, "y5": 13.2 },
+    { "peer": "SBI Contra Fund",                     "m1":  0.0, "m3":  0.0, "m6":  0.0, "y1":  0.0, "y3":  0.0, "y5":  0.0 },
+    { "peer": "Templeton India Value Fund",          "m1":  5.7, "m3": -1.0, "m6": -2.6, "y1":  4.3, "y3": 16.3, "y5": 18.6 },
+    { "peer": "Aditya Birla Sun Life Dividend",      "m1":  0.0, "m3":  0.0, "m6":  0.0, "y1":  0.0, "y3":  0.0, "y5":  0.0 },
+    { "peer": "Aditya Birla Sun Life Equity F",      "m1":  7.8, "m3":  0.7, "m6": -0.7, "y1": 10.3, "y3": 18.7, "y5": 14.7 },
+    { "peer": "Franklin India Equity Advantag",      "m1":  7.0, "m3": -1.4, "m6": -5.0, "y1":  6.7, "y3": 16.3, "y5": 14.2 },
+    { "peer": "Franklin India Focused Equity",       "m1":  4.8, "m3": -4.3, "m6": -8.2, "y1":  0.6, "y3": 14.4, "y5": 14.9 },
+    { "peer": "HDFC Capital Builder Value Fun",      "m1":  8.6, "m3":  0.5, "m6": -1.0, "y1":  9.7, "y3": 19.8, "y5": 17.4 }
+  ],
+
+  "cosGt1PctIndex": [
+    { "company": "HDFC Bank Ltd",           "rating": "A", "indexPct": 4.3, "fundPct": 6.0 },
+    { "company": "ICICI Bank Ltd",          "rating": "B", "indexPct": 3.4, "fundPct": 4.4 },
+    { "company": "Axis Bank Ltd",           "rating": "B", "indexPct": 1.4, "fundPct": 3.7 },
+    { "company": "Infosys Ltd",             "rating": "A", "indexPct": 1.6, "fundPct": 2.7 },
+    { "company": "Larsen & Toubro Ltd",     "rating": "B", "indexPct": 1.7, "fundPct": 1.9 },
+    { "company": "Reliance Industries Ltd", "rating": "B", "indexPct": 3.3, "fundPct": 1.9 },
+    { "company": "ITC Ltd",                 "rating": "B", "indexPct": 1.0, "fundPct": 1.6 },
+    { "company": "State Bank of India",     "rating": "C", "indexPct": 1.6, "fundPct": 1.3 },
+    { "company": "Mahindra & Mahindra Ltd", "rating": "A", "indexPct": 1.0, "fundPct": 1.1 },
+    { "company": "Bharti Airtel Ltd",       "rating": "B", "indexPct": 2.0, "fundPct": 0.0 }
+  ],
+
+  "ratingExposure": [
+    { "rating": "B",   "indexPct": 39.8, "fundPct": 48.5 },
+    { "rating": "A",   "indexPct": 21.3, "fundPct": 25.6 },
+    { "rating": "C",   "indexPct": 23.9, "fundPct": 24.4 },
+    { "rating": "D",   "indexPct":  5.1, "fundPct":  0.8 },
+    { "rating": "NA",  "indexPct":  9.8, "fundPct":  0.7 },
+    { "rating": "DNA", "indexPct":  0.0, "fundPct":  0.0 }
+  ],
+
+  "holdingsPattern": [
+    { "label": "Top 5",  "indexPct": 11.1, "fundPct": 19.4 },
+    { "label": "Top 10", "indexPct": 17.2, "fundPct": 29.6 },
+    { "label": "Top 20", "indexPct": 22.0, "fundPct": 44.1 },
+    { "label": "Top 30", "indexPct": 25.0, "fundPct": 55.0 }
+  ],
+
+  "mcapExposure": [
+    { "label": "Large Cap", "indexPct": 49.1, "fundPct": 43.3 },
+    { "label": "Mid Cap",   "indexPct": 25.4, "fundPct": 28.8 },
+    { "label": "Small Cap", "indexPct": 25.5, "fundPct": 27.3 },
+    { "label": "Cash & C.E.", "indexPct": 0.0, "fundPct":  0.7 }
+  ]
+}

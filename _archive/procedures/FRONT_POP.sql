@@ -1,0 +1,1 @@
+PROCEDURE front_pop" (Index_id NUMBER,Idx_date DATE,Start_date DATE,End_date DATE)

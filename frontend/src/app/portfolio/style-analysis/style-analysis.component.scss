@@ -1,0 +1,232 @@
+/* ═══════════════════════════════════════════════════════════════
+   Style Analysis — layout and tables
+   ═══════════════════════════════════════════════════════════════ */
+
+/* No background on :host — inherits from .main in portfolio.component.scss */
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  font-family: 'Inter', 'Roboto', Arial, sans-serif;
+  font-size: 12px;
+
+  scrollbar-width: thin;
+  scrollbar-color: #c5cce0 transparent;
+  &::-webkit-scrollbar       { width: 7px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #c5cce0; border-radius: 4px; }
+}
+
+/* ── ROOT CONTAINER ─────────────────────────────────────────────── */
+.sa-root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px 16px;
+  min-width: 0;
+}
+
+/* ── ROWS ───────────────────────────────────────────────────────── */
+.sa-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  min-width: 0;
+
+  &--thirds {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.sa-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── PANEL ──────────────────────────────────────────────────────── */
+.sa-panel {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  min-width: 0;
+}
+
+/* ── PANEL TITLE ────────────────────────────────────────────────── */
+.sa-title {
+  padding: 10px 14px 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #64748b;
+  border-bottom: 1px solid #e8ecf4;
+  letter-spacing: 0.1px;
+
+  strong {
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: 0.3px;
+  }
+}
+
+/* ── TABLE SCROLL WRAPPER ───────────────────────────────────────── */
+.sa-table-wrap {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 340px;
+  scrollbar-width: thin;
+  scrollbar-color: #dde2ec #fff;
+
+  &::-webkit-scrollbar       { width: 5px; height: 5px; }
+  &::-webkit-scrollbar-track { background: #f8f9fc; }
+  &::-webkit-scrollbar-thumb { background: #dde2ec; border-radius: 3px; }
+
+  &--short { max-height: 260px; }
+}
+
+/* ── TABLE ──────────────────────────────────────────────────────── */
+.sa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
+    tr {
+      background-color: #f8f9fc;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    th {
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      border-right: 1px solid #edf0f7;
+
+      &:last-child { border-right: none; }
+      &:hover { background-color: #eef1f8; color: #1e293b; }
+
+      &.col-num  { text-align: right; }
+      &.col-text { text-align: left; }
+      &.col-sm   { text-align: center; }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #f0f2f6;
+
+      &:hover { background-color: #f5f7ff !important; }
+      &.alt   { background-color: #fafbfc; }
+
+      &.row-highlight {
+        background-color: #eff4ff !important;
+        td { font-weight: 600; color: #1e293b !important; }
+      }
+      &.row-index {
+        background-color: #f0fdf4 !important;
+        td { font-style: italic; color: #15803d !important; }
+      }
+    }
+
+    td {
+      padding: 6px 10px;
+      color: #374151;
+      white-space: nowrap;
+      border-right: 1px solid #f0f2f6;
+      &:last-child { border-right: none; }
+    }
+  }
+}
+
+/* Column alignment */
+.col-num  { text-align: right !important; font-variant-numeric: tabular-nums; }
+.col-text { text-align: left !important; min-width: 140px; }
+.col-sm   { text-align: center !important; min-width: 60px; }
+
+/* OW/UW and return colours — no transition, snap instantly */
+td.pos { color: #16a34a !important; font-weight: 500; }
+td.neg { color: #dc2626 !important; font-weight: 500; }
+
+/* Sort icon */
+.sort-icon { font-size: 10px; color: #94a3b8; margin-left: 3px; }
+
+/* Rating badge */
+.rating {
+  font-weight: 600;
+  &.rating-a  { color: #16a34a; }
+  &.rating-b  { color: #2563eb; }
+  &.rating-c  { color: #d97706; }
+  &.rating-d  { color: #dc2626; }
+  &.rating-na, &.rating-dna { color: #94a3b8; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DARK MODE  — applied via :host.dark  (@HostBinding in component)
+   ═══════════════════════════════════════════════════════════════ */
+:host.dark {
+  scrollbar-color: #3d4450 transparent;
+  &::-webkit-scrollbar-thumb { background: #3d4450; }
+
+  .sa-panel {
+    background-color: #1a1c1f;
+    border-color: rgba(255,255,255,0.07);
+    box-shadow: none;
+  }
+
+  .sa-title {
+    color: #6b7280;
+    border-bottom-color: rgba(255,255,255,0.07);
+    strong { color: #cdd5e0; }
+  }
+
+  .sa-table-wrap {
+    scrollbar-color: #3d4450 #1a1c1f;
+    &::-webkit-scrollbar-track { background: #1a1c1f; }
+    &::-webkit-scrollbar-thumb { background: #3d4450; }
+  }
+
+  .sa-table {
+    thead tr { background-color: #141517; border-bottom-color: rgba(255,255,255,0.08); }
+    thead th {
+      color: #9ca3af;
+      border-right-color: rgba(255,255,255,0.05);
+      &:hover { background-color: #1e2124; color: #cdd5e0; }
+    }
+
+    tbody {
+      tr {
+        border-bottom-color: rgba(255,255,255,0.04);
+        &:hover { background-color: #232629 !important; }
+        &.alt   { background-color: #1c1e21; }
+        &.row-highlight { background-color: rgba(37,99,235,0.12) !important; td { color: #cdd5e0 !important; } }
+        &.row-index     { background-color: rgba(22,163,74,0.08) !important; td { color: #34d399 !important; } }
+      }
+      td { color: #9ca3af; border-right-color: rgba(255,255,255,0.04); }
+    }
+  }
+
+  td.pos { color: #34d399 !important; }
+  td.neg { color: #f87171 !important; }
+
+  .sort-icon { color: #4b5563; }
+
+  .rating {
+    &.rating-a  { color: #34d399; }
+    &.rating-b  { color: #60a5fa; }
+    &.rating-c  { color: #fbbf24; }
+    &.rating-d  { color: #f87171; }
+    &.rating-na, &.rating-dna { color: #4b5563; }
+  }
+}

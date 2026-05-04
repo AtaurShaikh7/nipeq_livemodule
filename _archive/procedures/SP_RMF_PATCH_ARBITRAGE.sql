@@ -1,0 +1,251 @@
+PROCEDURE SP_RMF_PATCH_ARBITRAGE
+
+AS
+
+CURR_DATE DATE;
+
+BEGIN
+
+
+
+SELECT CURRDATADATE INTO CURR_DATE FROM DAILY_PROCESS_STATS WHERE UPPER(PROCESS_NAME) = 'ETL STAGE 2';
+
+
+
+--CURR_DATE := '26-JUN-2015';
+
+
+
+DELETE FROM temp_arbitrage_mapping WHERE TRUNC(effective_date) >= TO_DATE(CURR_DATE, 'DD-Mon-YY');
+
+
+
+DELETE FROM fund_holdings_live WHERE fund_id IN (61,62) AND TRUNC(effective_date) >= TO_DATE(CURR_DATE, 'DD-Mon-YY');
+
+
+
+DELETE FROM fund_nav WHERE fund_id IN (61,62) AND TRUNC(VALUE_DATE) >= TO_DATE(CURR_DATE, 'DD-Mon-YY');
+
+
+
+commit;
+
+
+
+--POPULATE TEMP TABLE WITH CASH_ARBITRAGE_PART AND CASH_EQUITY_PART
+
+INSERT INTO temp_arbitrage_mapping( FUND_ID,EFFECTIVE_DATE,UNDERLIER_CODE,FNO_QTY,CASH_QTY,CASH_ARB_QTY,CASH_QTY_REM)
+
+SELECT FUND_ID,EFFECTIVE_DATE,UNDERLIER_CODE,FNO_QTY,CASH_QTY,CASH_ARB_QTY,(CASH_QTY-CASH_ARB_QTY) AS CASH_QTY_REM FROM 
+
+(
+
+SELECT FNOGRP.FUND_ID,FNOGRP.EFFECTIVE_DATE,FNOGRP.UNDERLIER_CODE,FNOGRP.QTY AS FNO_QTY,EQ.QUANTITY AS CASH_QTY,
+
+CASE WHEN FNOGRP.MTM <= 0 THEN
+
+CASE WHEN FNOGRP.QTY <= EQ.QUANTITY THEN FNOGRP.QTY
+
+ELSE EQ.QUANTITY END
+
+ELSE 0 END AS CASH_ARB_QTY
+
+FROM
+
+(
+
+SELECT FNO.FUND_ID,FNO.EFFECTIVE_DATE,SUN.UNDERLIER_CODE,SUM(FNO.QUANTITY) AS QTY,SUM(MTM_VALUE) AS MTM FROM
+
+(
+
+SELECT * FROM fund_holdings_live WHERE TRUNC(effective_date) = TO_DATE(CURR_DATE, 'DD-Mon-YY') AND fund_id = 57 AND 
+
+(security_code LIKE 'INFT%' OR security_code LIKE 'INOP%') ) FNO
+
+INNER JOIN security_underliers SUN ON SUN.SECURITY_CODE = FNO.SECURITY_CODE
+
+GROUP BY sun.underlier_code,FNO.EFFECTIVE_DATE,FNO.FUND_ID) FNOGRP
+
+LEFT JOIN
+
+(SELECT * FROM fund_holdings_live WHERE TRUNC(effective_date) = TO_DATE(CURR_DATE, 'DD-Mon-YY') AND fund_id = 57) EQ
+
+ON EQ.SECURITY_CODE = FNOGRP.UNDERLIER_CODE
+
+);
+
+
+
+--INSERT ALL THE FUTURE&OPTIONS INTO THE ARBITRAGE PART OF THE FUND
+
+INSERT INTO FUND_HOLDINGS_LIVE (FUND_ID, effective_date, security_code, quantity, mtm_value, mtm_value_p, option_position, 
+
+pur_value, ammortised_book_cost, accrued_interest)
+
+SELECT 61 AS FUND_ID, effective_date, security_code, quantity, mtm_value, mtm_value_p, option_position, 
+
+pur_value, ammortised_book_cost, accrued_interest FROM fund_holdings_live WHERE TRUNC(effective_date) = TO_DATE(CURR_DATE, 'DD-Mon-YY')
+
+AND fund_id = 57 AND (security_code LIKE 'INFT%' OR security_code LIKE 'INOP%');
+
+
+
+--INSERT THE CORRESPONDING ARBITRAGE EQUITY PART
+
+INSERT INTO FUND_HOLDINGS_LIVE (FUND_ID, effective_date, security_code, quantity, mtm_value, mtm_value_p, option_position, 
+
+pur_value, ammortised_book_cost, accrued_interest)
+
+  SELECT 61 AS FUND_ID,ALLD.EFFECTIVE_DATE,ALLD.SECURITY_CODE, arb.cash_arb_qty AS QUANTITY,
+
+  (arb.cash_arb_qty*ALLD.MTM_VALUE)/ALLD.QUANTITY AS MTM_VALUE,
+
+  (arb.cash_arb_qty*ALLD.MTM_VALUE_P)/ALLD.QUANTITY AS MTM_VALUE_P,ALLD.OPTION_POSITION,ALLD.PUR_VALUE, 
+
+  ROUND((arb.cash_arb_qty*ALLD.AMMORTISED_BOOK_COST)/ALLD.QUANTITY ,6) AS AMMORTISED_BOOK_COST, ALLD.ACCRUED_INTEREST
+
+  FROM
+
+  (
+
+  SELECT * FROM fund_holdings_live WHERE TRUNC(effective_date) = TO_DATE(CURR_DATE, 'DD-Mon-YY') AND fund_id = 57
+
+  ) ALLD
+
+  INNER JOIN (SELECT * FROM temp_arbitrage_mapping WHERE FUND_ID = 57 AND TRUNC(effective_date) = TO_DATE(CURR_DATE, 'DD-Mon-YY'))ARB
+
+  ON ARB.UNDERLIER_CODE = ALLD.SECURITY_CODE;
+
+
+
+--INSERT THE REMAINING CASH EQUITY PART
+
+INSERT INTO FUND_HOLDINGS_LIVE (FUND_ID, effective_date, security_code, quantity, mtm_value, mtm_value_p, option_position, 
+
+pur_value, ammortised_book_cost, accrued_interest)
+
+  SELECT 62 AS FUND_ID,ALLD.EFFECTIVE_DATE,ALLD.SECURITY_CODE, arb.cash_qty_rem AS QUANTITY,
+
+  (arb.cash_qty_rem*ALLD.MTM_VALUE)/ALLD.QUANTITY AS MTM_VALUE,
+
+  (arb.cash_qty_rem*ALLD.MTM_VALUE_P)/ALLD.QUANTITY AS MTM_VALUE_P,ALLD.OPTION_POSITION,ALLD.PUR_VALUE, 
+
+  ROUND((arb.cash_qty_rem*ALLD.AMMORTISED_BOOK_COST)/ALLD.QUANTITY ,6) AS AMMORTISED_BOOK_COST, ALLD.ACCRUED_INTEREST
+
+  FROM
+
+  (
+
+  SELECT * FROM fund_holdings_live WHERE TRUNC(effective_date) = TO_DATE(CURR_DATE, 'DD-Mon-YY') AND fund_id = 57
+
+  ) ALLD
+
+  INNER JOIN (SELECT * FROM temp_arbitrage_mapping WHERE temp_arbitrage_mapping.cash_qty_rem > 0
+
+  AND FUND_ID = 57 AND TRUNC(effective_date) = TO_DATE(CURR_DATE, 'DD-Mon-YY'))
+
+  ARB ON ARB.UNDERLIER_CODE = ALLD.SECURITY_CODE;
+
+
+
+--INSERT THE REST OF THE FUND
+
+INSERT INTO FUND_HOLDINGS_LIVE (FUND_ID, effective_date, security_code, quantity, mtm_value, mtm_value_p, option_position, 
+
+pur_value, ammortised_book_cost, accrued_interest)
+
+  SELECT 62 AS FUND_ID, effective_date, security_code, quantity, mtm_value, mtm_value_p, option_position, 
+
+  pur_value, ammortised_book_cost, accrued_interest FROM fund_holdings_live
+
+  WHERE TRUNC(effective_date) = TO_DATE(CURR_DATE, 'DD-Mon-YY') AND FUND_ID = 57 
+
+  AND security_code NOT IN (SELECT UNDERLIER_CODE FROM temp_arbitrage_mapping
+
+  WHERE TRUNC(effective_date) = TO_DATE(CURR_DATE, 'DD-Mon-YY') AND FUND_ID = 57)
+
+  AND security_code NOT LIKE 'INFT%' AND security_code NOT LIKE 'INOP%' AND SECURITY_CODE NOT LIKE 'INCASH%';
+
+
+
+
+
+--ACTIVE PART NAV
+
+insert into fund_nav(fund_id, nav, nav_per_unit, value_date)
+
+  SELECT 62 AS FUND_ID,0.25*NAV AS NAV,NULL AS NAV_PER_UNIT, value_date
+
+  FROM FUND_NAV WHERE FUND_ID = 56 AND TRUNC(VALUE_DATE) = TO_DATE(CURR_DATE, 'DD-Mon-YY');
+
+
+
+--arbitrage NAV
+
+INSERT INTO FUND_NAV(fund_id, nav, nav_per_unit, value_date)
+
+  SELECT 61 AS FUND_ID,0.25*NAV AS NAV,NULL AS NAV_PER_UNIT, value_date
+
+  FROM FUND_NAV WHERE FUND_ID = 56 AND TRUNC(VALUE_DATE) = TO_DATE(CURR_DATE, 'DD-Mon-YY');
+
+  
+
+  --ADD CASH INTO ARBITRAGE PART
+
+INSERT INTO FUND_HOLDINGS_LIVE (FUND_ID, effective_date, security_code, quantity, mtm_value, mtm_value_p, option_position, 
+
+pur_value, ammortised_book_cost, accrued_interest)
+
+SELECT 61 AS FUND_ID,MAIN_NAV.VALUE_DATE AS EFFECTIVE_DATE,'INCASH000001' AS SECURITY_CODE,1 AS QUANTITY,
+
+MAIN_NAV.NAV - ARB_NAV.NAV AS MTM_VALUE,MAIN_NAV.NAV - ARB_NAV.NAV AS MTM_VALUE_P, NULL,NULL,NULL,NULL
+
+FROM
+
+(SELECT * FROM FUND_NAV WHERE 
+
+FUND_ID = 61 AND TRUNC(VALUE_DATE) = TO_DATE(CURR_DATE, 'DD-Mon-YY')) MAIN_NAV
+
+INNER JOIN 
+
+(SELECT SUM(MTM_VALUE) AS NAV,EFFECTIVE_DATE FROM FUND_HOLDINGS_LIVE WHERE FUND_ID = 61 
+
+AND TRUNC(EFFECTIVE_DATE) = TO_DATE(CURR_DATE, 'DD-Mon-YY') GROUP BY EFFECTIVE_DATE) ARB_NAV
+
+ON TRUNC(ARB_NAV.EFFECTIVE_DATE) = TRUNC(MAIN_NAV.VALUE_DATE);
+
+
+
+--ADD CASH INTO ACTIVE PART
+
+INSERT INTO FUND_HOLDINGS_LIVE (FUND_ID, effective_date, security_code, quantity, mtm_value, mtm_value_p, option_position, 
+
+pur_value, ammortised_book_cost, accrued_interest)
+
+SELECT 62 AS FUND_ID,MAIN_NAV.VALUE_DATE AS EFFECTIVE_DATE,'INCASH000001' AS SECURITY_CODE,1 AS QUANTITY,
+
+MAIN_NAV.NAV - ACT_NAV.NAV AS MTM_VALUE,MAIN_NAV.NAV - ACT_NAV.NAV AS MTM_VALUE_P, NULL,NULL,NULL,NULL
+
+FROM
+
+(SELECT * FROM FUND_NAV WHERE 
+
+FUND_ID = 62 AND TRUNC(VALUE_DATE) = TO_DATE(CURR_DATE, 'DD-Mon-YY')) MAIN_NAV
+
+INNER JOIN 
+
+(SELECT SUM(MTM_VALUE) AS NAV,EFFECTIVE_DATE FROM FUND_HOLDINGS_LIVE WHERE FUND_ID = 62 
+
+AND TRUNC(EFFECTIVE_DATE) = TO_DATE(CURR_DATE, 'DD-Mon-YY') GROUP BY EFFECTIVE_DATE) ACT_NAV
+
+ON TRUNC(ACT_NAV.EFFECTIVE_DATE) = TRUNC(MAIN_NAV.VALUE_DATE);
+
+
+
+COMMIT;
+
+
+
+
+
+END SP_RMF_PATCH_ARBITRAGE;

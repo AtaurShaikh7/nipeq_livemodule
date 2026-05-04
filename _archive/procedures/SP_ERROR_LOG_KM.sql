@@ -1,0 +1,1 @@
+PROCEDURE SP_ERROR_LOG_KM" (ProcNm IN varchar2, rundt IN DATE, currdt IN DATE, lastdt IN DATE, readYstat IN NUMBER, status_msg IN VARCHAR2)

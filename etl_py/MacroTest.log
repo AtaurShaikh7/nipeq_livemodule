@@ -1,0 +1,74 @@
+=== ETL Log Started at 2026-05-01 18:03:25 ===
+[2026-05-01 18:03:25] [INFO ] ---------- ETL Pipeline Starting ----------
+[2026-05-01 18:03:25] [INFO ] Module started at: 2026-05-01 18:03:25
+[2026-05-01 18:03:25] [INFO ] Log file: D:\Valuefy\automate\etl_py\MacroTest.log
+[2026-05-01 18:03:25] [INFO ] Python: 3.14.4 (tags/v3.14.4:23116f9, Apr  7 2026, 14:10:54) [MSC v.1944 64 bit (AMD64)]
+[2026-05-01 18:03:25] [INFO ] ---------- STEP 0: File Movement ----------
+[2026-05-01 18:03:25] [INFO ] ---------- FILE MOVEMENT: Starting ----------
+[2026-05-01 18:03:25] [INFO ] ---------- Step 1: Extract date from source folder filenames ----------
+[2026-05-01 18:03:25] [INFO ]   Date extracted from 'NIFTY500_MULTICAP_50_25_25_20260430.zip': 20260430
+[2026-05-01 18:03:25] [INFO ] ---------- Step 2: Create NSEDATA output folder structure ----------
+[2026-05-01 18:03:25] [INFO ]   Output folder: D:\Valuefy\DataLoadProcess\DailyData\IndexData\NSEDATA\20260430
+[2026-05-01 18:03:25] [INFO ]   Created 12 index sub-folders.
+[2026-05-01 18:03:25] [INFO ] ---------- Step 3: Move and extract index ZIP files ----------
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY500_MULTICAP_50_25_25_20260430.zip -> CNX NIFTY500_MULTICAP/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY500_MULTICAP_50_25_25_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_100_20260430.zip -> CNX 100/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_100_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_500_20260430.zip -> CNX NIFTY 500/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_500_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_50_20260430.zip -> CNX NIFTY/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_50_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_BANK_20260430.zip -> CNX BANK NIFTY/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_BANK_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_DIVIDEND_OPPORTUNITIES_50_20260430.zip -> CNX DIVOPP/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_DIVIDEND_OPPORTUNITIES_50_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_INDIA_CONSUMPTION_20260430.zip -> CNX CONSUMPTION/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_INDIA_CONSUMPTION_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_INFRASTRUCTURE_20260430.zip -> CNX INFRASTRUCTURE/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_INFRASTRUCTURE_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_LargeMidcap_250_20260430.zip -> CNX LARGEMIDCAP 250/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_LargeMidcap_250_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_MIDCAP_150_20260430.zip -> CNX MIDCAP 150/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_MIDCAP_150_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_MNC_20260430.zip -> NIFTY MNC/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_MNC_20260430.zip
+[2026-05-01 18:03:25] [INFO ]   Moved: NIFTY_SMALLCAP_250_20260430.zip -> CNX SMALLCAP 250/
+[2026-05-01 18:03:25] [INFO ]   Extracted: NIFTY_SMALLCAP_250_20260430.zip
+[2026-05-01 18:03:25] [INFO ] ---------- Step 4: NAV ZIP -> CustodianData ----------
+[2026-05-01 18:03:25] [INFO ]   Extracted NAV ZIP to D:\Valuefy\DataLoadProcess\DailyData\CustodianData
+[2026-05-01 18:03:25] [INFO ]   Renamed: IN_MF_RLMF_NAV_CSV.csv -> NAV_30042026.csv
+[2026-05-01 18:03:25] [INFO ] ---------- Step 5: VALUEFY ZIP -> CustodianData ----------
+[2026-05-01 18:03:29] [INFO ]   Extracted VALUEFY ZIP
+[2026-05-01 18:03:29] [INFO ]   Files moved to: D:\Valuefy\DataLoadProcess\DailyData\CustodianData\VALUEFY300426\RLMF_RLMF_VALUEFY
+[2026-05-01 18:03:29] [INFO ] ---------- Step 7: FIN/FIE ZIPs -> OtherData (force replace) ----------
+[2026-05-01 18:03:29] [INFO ]   Extracted FIN30046.ZIP -> D:\Valuefy\DataLoadProcess\DailyData\OtherData
+[2026-05-01 18:03:29] [INFO ]   Extracted FIE30046.ZIP -> D:\Valuefy\DataLoadProcess\DailyData\OtherData
+[2026-05-01 18:03:29] [INFO ] ---------- Step 8: VALUEFY Excel cleanup ----------
+[2026-05-01 18:03:29] [INFO ]   Opening: D:\Valuefy\DataLoadProcess\DailyData\CustodianData\VALUEFY300426\RLMF_RLMF_VALUEFY\IN_MF_TRADE_DUMP_REPORT.xls
+[2026-05-01 18:03:45] [INFO ]   Rows deleted (qty=0, non-PTC): 0
+[2026-05-01 18:03:45] [INFO ]   Rows patched (qty=0, PTC -> 0.01): 0
+[2026-05-01 18:03:45] [INFO ]   VALUEFY Excel saved.
+[2026-05-01 18:03:45] [INFO ] ---------- FILE MOVEMENT: Completed successfully ----------
+[2026-05-01 18:03:45] [INFO ]   NSEDATA output: D:\Valuefy\DataLoadProcess\DailyData\IndexData\NSEDATA\20260430
+[2026-05-01 18:03:45] [INFO ]   Custodian data: D:\Valuefy\DataLoadProcess\DailyData\CustodianData
+[2026-05-01 18:03:45] [INFO ]   Other data:     D:\Valuefy\DataLoadProcess\DailyData\OtherData
+[2026-05-01 18:03:45] [INFO ] ---------- PRE-STEP: Fetch Effdate ----------
+[2026-05-01 18:03:45] [INFO ] Connecting to Oracle to fetch effdate...
+[2026-05-01 18:03:46] [INFO ] Fetched effdate: 2026-04-30
+[2026-05-01 18:03:46] [INFO ] ---------- STEP 0: DION Downloader ----------
+[2026-05-01 18:03:46] [INFO ]   DION pre-check OK: 'DION_AVGVOL_30042026093146.xlsx' size 449.9 KB, date matches effdate.
+[2026-05-01 18:03:47] [INFO ]   DION pre-check OK: 'DION_INDEX_RETURNS_30042026093140.xlsx' size 13.3 KB, date matches effdate.
+[2026-05-01 18:03:48] [INFO ]   DION pre-check OK: 'DION_NAV_RETURNS_30042026093139.xlsx' size 1152.4 KB, date matches effdate.
+[2026-05-01 18:03:49] [INFO ]   DION pre-check OK: 'DION_EOD_PRICES_30042026093138.xlsx' size 560.4 KB, date matches effdate.
+[2026-05-01 18:03:50] [INFO ]   DION Excel pre-check OK: 'DION_AVGVOL_30042026093146.xlsx' row count 7877 (expected 7000–9999)
+[2026-05-01 18:03:51] [WARN ]   DION Excel pre-check: 'DION_INDEX_RETURNS_30042026093140.xlsx' has 0 rows for effdate (expected 15–999)
+[2026-05-01 18:03:51] [INFO ] DION files not ready — running DION Downloader...
+[2026-05-01 18:03:51] [INFO ] Running DionDownloader: wscript.exe D:\Valuefy\DataLoadProcess\ETLMacros\DionDownloader\DionDownloader_latest.vbs
+[2026-05-01 18:04:04] [INFO ] DION Downloader completed successfully.
+[2026-05-01 18:04:04] [INFO ] Validating Dion Excel data (row counts for effdate)...
+[2026-05-01 18:04:05] [INFO ]   DION_AVGVOL_: file=DION_AVGVOL_30042026180404.xlsx, rows with effdate=7877 (expected 7000–9999)
+[2026-05-01 18:04:05] [INFO ]   OK: DION_AVGVOL_
+[2026-05-01 18:04:06] [INFO ]   DION_INDEX_RETURNS_: file=DION_INDEX_RETURNS_30042026180357.xlsx, rows with effdate=0 (expected 15–999)
+[2026-05-01 18:04:06] [ERROR] Dion Excel validation FAILED for 'DION_INDEX_RETURNS_': 0 outside [15, 999]
+[2026-05-01 18:04:06] [ERROR] DION Excel validation failed after downloader run.

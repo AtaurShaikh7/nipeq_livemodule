@@ -1,0 +1,17 @@
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\bin\Debug\net9.0\MacroTest.exe
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\bin\Debug\net9.0\MacroTest.deps.json
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\bin\Debug\net9.0\MacroTest.runtimeconfig.json
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\bin\Debug\net9.0\MacroTest.dll
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\bin\Debug\net9.0\MacroTest.pdb
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\bin\Debug\net9.0\Microsoft.Office.Interop.Excel.dll
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\MacroTest.csproj.AssemblyReference.cache
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\MacroTest.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\MacroTest.AssemblyInfoInputs.cache
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\MacroTest.AssemblyInfo.cs
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\MacroTest.csproj.CoreCompileInputs.cache
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\MacroTest.csproj.Up2Date
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\MacroTest.dll
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\refint\MacroTest.dll
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\MacroTest.pdb
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\MacroTest.genruntimeconfig.cache
+C:\Users\sa_pim_windows\Downloads\dotNET\Macrotest\obj\Debug\net9.0\ref\MacroTest.dll

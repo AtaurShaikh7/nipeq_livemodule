@@ -1,0 +1,35 @@
+image: node:20
+
+stages:
+  - build
+  - deploy
+
+cache:
+  paths:
+    - frontend/node_modules/
+
+build:
+  stage: build
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build -- --configuration production --base-href "/$CI_PROJECT_NAME/"
+  artifacts:
+    paths:
+      - frontend/dist/nipeq-frontend/browser
+    expire_in: 1 hour
+  only:
+    - main
+    - master
+
+pages:
+  stage: deploy
+  script:
+    - mkdir -p public
+    - cp -r frontend/dist/nipeq-frontend/browser/* public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+    - master

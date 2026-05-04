@@ -1,0 +1,1 @@
+PROCEDURE           PASSWORDBYEMAILID" (p_Email IN VARCHAR2,p_rndString IN varchar2 DEFAULT '', p_expiry IN DATE,cur OUT SYS_REFCURSOR)

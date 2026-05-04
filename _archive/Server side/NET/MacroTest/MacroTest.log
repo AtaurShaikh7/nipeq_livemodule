@@ -1,0 +1,215 @@
+﻿=== MacroTest Log Started at 2026-02-21 15:43:17 ===
+----------
+[2026-02-21 15:43:17] Starting Module...
+Log file location: D:\Valuefy\guna\MacroTest\bin\Debug\net9.0\MacroTest.log
+----------
+Fetching effective date from Oracle (pre-check for DION files)...
+Effective date: 2026-02-20
+  DION pre-check: 'DION_AVGVOL_20022026055105.xlsx' size OK (439.8 KB), filename date matches effdate.
+  DION pre-check: 'DION_INDEX_RETURNS_20022026055059.xlsx' size OK (13.3 KB), filename date matches effdate.
+  DION pre-check: 'DION_NAV_RETURNS_20022026055058.xlsx' size OK (1139.5 KB), filename date matches effdate.
+  DION pre-check: 'DION_EOD_PRICES_20022026055056.xlsx' size OK (558.6 KB), filename date matches effdate.
+  DION pre-check (Excel): 'DION_AVGVOL_20022026055105.xlsx' row count 7655 OK.
+  DION pre-check (Excel): 'DION_INDEX_RETURNS_20022026055059.xlsx' row count 19 OK.
+  DION pre-check (Excel): 'DION_NAV_RETURNS_20022026055058.xlsx' row count 8628 OK.
+  DION pre-check (Excel): 'DION_EOD_PRICES_20022026055056.xlsx' row count 4821 OK.
+All Dion files already present with correct size, date, and row counts for effdate 2026-02-20. Skipping DION Downloader.
+File (latest for 'DION_AVGVOL_'): DION_AVGVOL_20022026055105.xlsx
+  Size: 439.8 KB
+  Last Modified: 2026-02-21 05:51:06
+  Filename date: 2026-02-20  |  Matches effdate (2026-02-20): YES
+  Size OK (within expected range).
+File (latest for 'DION_INDEX_RETURNS_'): DION_INDEX_RETURNS_20022026055059.xlsx
+  Size: 13.3 KB
+  Last Modified: 2026-02-21 05:50:59
+  Filename date: 2026-02-20  |  Matches effdate (2026-02-20): YES
+  Size OK (within expected range).
+File (latest for 'DION_NAV_RETURNS_'): DION_NAV_RETURNS_20022026055058.xlsx
+  Size: 1139.5 KB
+  Last Modified: 2026-02-21 05:50:59
+  Filename date: 2026-02-20  |  Matches effdate (2026-02-20): YES
+  Size OK (within expected range).
+File (latest for 'DION_EOD_PRICES_'): DION_EOD_PRICES_20022026055056.xlsx
+  Size: 558.6 KB
+  Last Modified: 2026-02-21 05:50:57
+  Filename date: 2026-02-20  |  Matches effdate (2026-02-20): YES
+  Size OK (within expected range).
+Running BSE Downloader...
+PowerShell script executed successfully.
+Latest copy_log.txt entry:
+Data already copied for 20022026. Skipping.
+Running Macro...
+Macro executed successfully.
+Output file information:
+  Name: ETLDATA.xls
+  Size: 11.20 MB
+  Last Modified: 2026-02-21 15:44:29
+  Full Path: D:\Valuefy\DataLoadProcess\DBLink\DOM\ETLDATA.xls
+  Time since modification: -1.20 minutes
+  ✓ File modification time is recent (within 7 minutes).
+Reading latest macro runtime log file...
+Found latest macro log: Log_20-Feb-26.xls
+  Full Path: D:\Valuefy\DataLoadProcess\DailyData\OutputData\Log_20-Feb-26.xls
+  Last Modified: 2026-02-21 15:44:30
+Running Oracle scripts and validations...
+Attempting to connect to Oracle database...
+✓ Oracle connection established successfully!
+  Connection State: Open
+  Server Version: 19.29.0.0.0
+Using effective date (effdate): 2026-02-20
+Validating Dion Excel data (count of rows for effdate)...
+  DION_AVGVOL_: file=DION_AVGVOL_20022026055105.xlsx, rows with effdate (2026-02-20) = 7655 (expected 7000-9999)
+  ✓ DION_AVGVOL_ count OK.
+  DION_INDEX_RETURNS_: file=DION_INDEX_RETURNS_20022026055059.xlsx, rows with effdate (2026-02-20) = 19 (expected 15-999)
+  ✓ DION_INDEX_RETURNS_ count OK.
+  DION_NAV_RETURNS_: file=DION_NAV_RETURNS_20022026055058.xlsx, rows with effdate (2026-02-20) = 8628 (expected 5000-9999)
+  ✓ DION_NAV_RETURNS_ count OK.
+  DION_EOD_PRICES_: file=DION_EOD_PRICES_20022026055056.xlsx, rows with effdate (2026-02-20) = 4821 (expected 4000-9999)
+  ✓ DION_EOD_PRICES_ count OK.
+All Dion Excel data validations passed.
+Updating daily_process_stats for ETL STAGE 1 and ETL STAGE 2...
+Updated 2 row(s) in daily_process_stats.
+--- ORACLE STEP: FUTURE OPTIONS MASTER ---
+Executing: BEGIN SP_LDG_FUT_OPTSMASTER_XLS; END;
+Procedure executed successfully.
+Validation: future_options_master_src count
+  Result: COUNT(*) = 6
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: CORPORATE ACTIONS EXC ---
+Executing: BEGIN SP_LDG_CORPACTEXC_XLS; END;
+Procedure executed successfully.
+Validation: CORPORATE_ACTIONS_EXC_SRC count for effdate
+  Result: COUNT(*) = 30
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: CORPORATE ACTIONS ---
+Executing: BEGIN SP_LDG_CORPACTIONS_XLS; END;
+Procedure executed successfully.
+No validations configured for this step.
+--- ORACLE STEP: DAILY EOD PRICES ---
+Executing: BEGIN SP_LDG_DAILY_EOD_PRICES_XLS; END;
+Procedure executed successfully.
+Validation: DAILY_SECURITY_PRICES_SRC count for effdate
+  Result: COUNT(*) = 4821
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: INDEX RETURNS ---
+Executing: BEGIN SP_LDG_INDEX_RETURNS_XLS; END;
+Procedure executed successfully.
+Validation: INDEX_RETURNS_SRC count for effdate
+  Result: COUNT(*) = 19
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: NAV RETURNS ---
+Executing: BEGIN SP_LDG_NAV_RETURNS_XLS; END;
+Procedure executed successfully.
+Validation: NAV_RETURNS_SRC count for effdate
+  Result: COUNT(*) = 8628
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: FUND HOLDINGS ---
+Executing: BEGIN SP_LDG_FUNDHOLDINGS_XLS; END;
+Procedure executed successfully.
+Validation: FUND_HOLDINGS_SRC count for effdate
+  Result: COUNT(*) = 2736
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: DAILY PRICES ---
+Executing: BEGIN SP_LDG_DAILYPRICES_XLS; END;
+Procedure executed successfully.
+No validations configured for this step.
+--- ORACLE STEP: TRANSACTION DATA ---
+Executing: BEGIN SP_LDG_TXNDATA_XLS; END;
+Procedure executed successfully.
+Validation: TRANSACTION_DATA_SRC count for effdate
+  Result: COUNT(*) = 2321
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: FUND NAV ---
+Executing: BEGIN SP_LDG_FUNDNAV_XLS; END;
+Procedure executed successfully.
+Validation: Fund_NAV_Src count for effdate
+  Result: COUNT(*) = 35
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: INDEX DATA ---
+Executing: BEGIN SP_LDG_INDEXDATA_XLS; END;
+Procedure executed successfully.
+Validation: Index_Data_Src count for effdate
+  Result: COUNT(*) = 6020
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: INDEX DATA TRI ---
+Executing: BEGIN SP_LDG_INDEXDATATRI_XLS; END;
+Procedure executed successfully.
+Validation: Index_Data_Src TRI count for effdate
+  Result: COUNT(*) = 4474
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: INDEX PRICES ---
+Executing: BEGIN SP_LDG_INDEXPRICES_XLS; END;
+Procedure executed successfully.
+Validation: Index_Prices_Src count for effdate
+  Result: COUNT(*) = 38
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: AVERAGE VOLUME ---
+Executing: BEGIN SP_LDG_AVG_VOL_XLS; END;
+Procedure executed successfully.
+Validation: AVERAGE_VOLUME_SRC count for effdate
+  Result: COUNT(*) = 7654
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: MODEL DATA ---
+Executing: BEGIN SP_LDG_INDEXDATA_MODEL_XLS; END;
+Procedure executed successfully.
+No validations configured for this step.
+--- ORACLE STEP: MODEL PORTFOLIO ---
+Executing: BEGIN SP_LDG_MODELPORTFOLIO_XLS; END;
+Procedure executed successfully.
+No validations configured for this step.
+--- ORACLE STEP: DION FNO MASTER ---
+Executing: BEGIN SP_LDG_DION_FNO_MASTER_XLS; END;
+Procedure executed successfully.
+Validation: DION_FNO_MASTER_SRC count
+  Result: COUNT(*) = 102545
+  PASSED.
+Validation: ETL STAGE 1 status check
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: FINAL STATUS CHECK ---
+No procedure for this step (validation-only).
+Validation: ETL STAGE 1 status must be NULL
+  Result: NULL
+  PASSED.
+--- ORACLE STEP: SET ETL STAGE 1 DATAREADY ---
+Executing: UPDATE daily_process_stats SET dataready=1 WHERE process_name IN ('ETL STAGE 1')
+Executed successfully. Rows affected: 1
+No validations configured for this step.
+Oracle scripts completed successfully.
+[2026-02-21 15:46:35] Completed successfully. Exit code: 0

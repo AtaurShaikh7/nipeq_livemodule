@@ -1,0 +1,757 @@
+<div class="sc-shell" [class.sc-shell--collapsed]="sidebarCollapsed">
+
+  <!-- ── LEFT SIDEBAR ─────────────────────────────────────────── -->
+  <aside class="sc-sidebar">
+
+    <!-- Minimize toggle -->
+    <button class="sc-sb-item sc-sb-minimize" (click)="sidebarCollapsed = !sidebarCollapsed; $event.stopPropagation()" title="Minimize">
+      <span class="sc-sb-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </span>
+      <span class="sc-sb-label">Minimize</span>
+    </button>
+
+    <div class="sc-sb-divider"></div>
+
+    <!-- Live Report -->
+    <button class="sc-sb-item sc-sb-item--active" title="Live Report">
+      <span class="sc-sb-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </span>
+      <span class="sc-sb-label">Live Report</span>
+    </button>
+
+    <!-- Attribution -->
+    <button class="sc-sb-item" title="Attribution">
+      <span class="sc-sb-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+      </span>
+      <span class="sc-sb-label">Attribution</span>
+    </button>
+
+  </aside>
+
+  <!-- ── MAIN CONTENT ──────────────────────────────────────────── -->
+  <div class="sc-main" (click)="sidebarCollapsed = true">
+
+  <!-- ── TOP NAV ───────────────────────────────────────────────── -->
+  <header class="sc-top-nav">
+    <div class="sc-tn-left">
+      <img class="sc-tn-logo" src="logo-white.png" alt="ValueAT" />
+      <span class="sc-tn-sep">|</span>
+      <span class="sc-tn-page">Live Portfolio</span>
+    </div>
+    <div class="sc-tn-right">
+      <!-- Theme toggle -->
+      <button class="sc-theme-toggle" [class.dark-active]="darkMode" (click)="toggleDarkMode()"
+              [title]="darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+        <div class="sc-toggle-track">
+          <svg class="sc-toggle-icon sun" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <svg class="sc-toggle-icon moon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+          </svg>
+          <div class="sc-toggle-thumb"></div>
+        </div>
+      </button>
+      <!-- User -->
+      <div class="sc-tn-user">
+        <div class="sc-tn-avatar">S</div>
+        <span class="sc-tn-name">Support Sol...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── CONTROLS AREA ─────────────────────────────────────── -->
+  <div class="sc-controls-area" (click)="closeDropdowns()">
+    <div class="sc-ctrl-row">
+
+      <!-- Fund Name (left, large) -->
+      <div class="sc-ctrl-fund-left" style="position:relative">
+        <div class="sc-ctrl-label">FUND NAME</div>
+        <div class="sc-fund-trigger sc-fund-trigger--large" [class.sc-fund-trigger--open]="scFundOpen" (click)="toggleFundDd($event)">
+          <span class="sc-fund-name">{{ scFundName }}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [style.transform]="scFundOpen ? 'rotate(180deg)' : ''">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+        <div class="sc-dd-panel" *ngIf="scFundOpen" (click)="$event.stopPropagation()">
+          <div class="sc-dd-search-wrap">
+            <div class="sc-dd-search-label">SEARCH FUNDS</div>
+            <div class="sc-dd-search-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" [(ngModel)]="scFundSearch" placeholder="Search..." autofocus (click)="$event.stopPropagation()"/>
+            </div>
+          </div>
+          <div class="sc-dd-list">
+            <div class="sc-dd-item" *ngFor="let f of filteredScFunds"
+                 [class.sc-dd-item--active]="f.name === scFundName"
+                 (mousedown)="selectFund(f.name, $event)">{{ f.name }}</div>
+            <div class="sc-dd-empty" *ngIf="filteredScFunds.length === 0">No funds found</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sc-ctrl-spacer"></div>
+
+      <!-- Right group -->
+      <div class="sc-ctrl-right-group">
+
+        <!-- Layout Name -->
+        <div class="sc-ctrl-item" style="position:relative">
+          <div class="sc-ctrl-label">LAYOUT</div>
+          <div class="sc-fund-trigger" [class.sc-fund-trigger--open]="scLayoutOpen" (click)="toggleLayoutDd($event)">
+            <span class="sc-fund-name">{{ scLayout }}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [style.transform]="scLayoutOpen ? 'rotate(180deg)' : ''">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+          <div class="sc-dd-panel" *ngIf="scLayoutOpen" (click)="$event.stopPropagation()">
+            <div class="sc-dd-item" *ngFor="let l of scLayouts"
+                 [class.sc-dd-item--active]="l === scLayout"
+                 (click)="selectLayout(l, $event)">{{ l }}</div>
+          </div>
+        </div>
+
+        <!-- Index Name -->
+        <div class="sc-ctrl-item sc-ctrl-item--index" style="position:relative">
+          <div class="sc-ctrl-label">INDEX NAME</div>
+          <div class="sc-fund-trigger" [class.sc-fund-trigger--open]="scIndexOpen" (click)="toggleIndexDd($event)">
+            <span class="sc-fund-name">{{ scIndexName }}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [style.transform]="scIndexOpen ? 'rotate(180deg)' : ''">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+          <div class="sc-dd-panel" *ngIf="scIndexOpen" (click)="$event.stopPropagation()">
+            <div class="sc-dd-search-wrap">
+              <div class="sc-dd-search-label">SEARCH INDEX</div>
+              <div class="sc-dd-search-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" [(ngModel)]="scIndexSearch" placeholder="Search..." autofocus (click)="$event.stopPropagation()"/>
+              </div>
+            </div>
+            <div class="sc-dd-list">
+              <div class="sc-dd-item" *ngFor="let i of filteredScIndices"
+                   [class.sc-dd-item--active]="i.name === scIndexName"
+                   (mousedown)="selectIndex(i.name, $event)">{{ i.name }}</div>
+              <div class="sc-dd-empty" *ngIf="filteredScIndices.length === 0">No indices found</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Date -->
+        <div class="sc-ctrl-item">
+          <div class="sc-ctrl-label">REPORT DATE</div>
+          <div class="sc-fund-trigger sc-date-trigger">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <input class="sc-date-input" type="date" [(ngModel)]="scDate" (click)="$event.stopPropagation()"/>
+          </div>
+        </div>
+
+        <!-- Process button -->
+        <div class="sc-ctrl-item">
+          <div class="sc-ctrl-label">&nbsp;</div>
+          <button class="sc-process-btn" (click)="process($event)">Process</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── KPI STRIP (always visible, both tabs) ───────────────── -->
+  <div class="kpi-strip">
+
+    <!-- Performance -->
+    <div class="kpi-card">
+      <span class="kpi-card-label">Performance</span>
+      <div class="kpi-perf-row">
+
+        <div class="perf-text-item">
+          <span class="perf-text-val" [ngClass]="retClass(kpi.fundRet1d)">
+            {{ kpi.fundRet1d >= 0 ? '+' : '' }}{{ n2(kpi.fundRet1d) }}%
+          </span>
+          <span class="perf-donut-label">FUND RET. (%)</span>
+        </div>
+
+        <div class="perf-text-item">
+          <span class="perf-text-val" [ngClass]="retClass(kpi.alpha1d)">
+            {{ kpi.alpha1d >= 0 ? '+' : '' }}{{ n2(kpi.alpha1d) }}%
+          </span>
+          <span class="perf-donut-label">ALPHA (%)</span>
+        </div>
+
+        <div class="perf-text-item">
+          <span class="perf-text-val" [ngClass]="retClass(kpi.indexRet1d)">
+            {{ kpi.indexRet1d >= 0 ? '+' : '' }}{{ n2(kpi.indexRet1d) }}%
+          </span>
+          <span class="perf-donut-label">INDEX RET. (%)</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Portfolio Health -->
+    <div class="kpi-card">
+      <span class="kpi-card-label">Capital Breakdown</span>
+      <div class="kpi-health-row">
+        <!-- Invested % donut -->
+        <div class="kpi-donut-wrap">
+          <svg width="70" height="70" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="18" fill="none" class="donut-track" stroke-width="5"/>
+            <circle cx="22" cy="22" r="18" fill="none" stroke="#2563eb" stroke-width="5"
+                    stroke-linecap="round"
+                    [attr.stroke-dasharray]="donutDash(kpi.investedPct)"
+                    stroke-dashoffset="28.3"
+                    transform="rotate(-90 22 22)"/>
+            <text x="22" y="26" text-anchor="middle" font-size="7.5" font-weight="700" class="donut-text">
+              {{ n1(kpi.investedPct) }}%
+            </text>
+          </svg>
+          <span class="kpi-donut-label">Invested %</span>
+          <span class="kpi-donut-val">({{ (kpi.investedPct / 100 * kpi.aumCr | number:'1.0-0') }} CR)</span>
+        </div>
+        <!-- AUM -->
+        <div class="kpi-aum-block">
+          <span class="kpi-aum-val">{{ kpi.aumCr | number:'1.0-0' }} CR</span>
+          <span class="kpi-sub">AUM</span>
+        </div>
+        <!-- Cash % donut -->
+        <div class="kpi-donut-wrap">
+          <svg width="70" height="70" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="18" fill="none" class="donut-track" stroke-width="5"/>
+            <circle cx="22" cy="22" r="18" fill="none" stroke="#60a5fa" stroke-width="5"
+                    stroke-linecap="round"
+                    [attr.stroke-dasharray]="donutDash(kpi.cashPct)"
+                    stroke-dashoffset="28.3"
+                    transform="rotate(-90 22 22)"/>
+            <text x="22" y="26" text-anchor="middle" font-size="7.5" font-weight="700" class="donut-text">
+              {{ n1(kpi.cashPct) }}%
+            </text>
+          </svg>
+          <span class="kpi-donut-label">Cash &amp; C.E. %</span>
+          <span class="kpi-donut-val">({{ (kpi.cashPct / 100 * kpi.aumCr | number:'1.0-0') }} CR)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Cap (avg) -->
+    <div class="kpi-card">
+      <span class="kpi-card-label">Market Cap</span>
+      <div class="kpi-mcap-wrap">
+        <div class="kpi-mcap-col">
+          <span class="kpi-mcap-bar-label">Fund</span>
+          <div class="kpi-mcap-bar-track">
+            <div class="kpi-mcap-bar fund"
+                 [style.height]="barWidth(kpi.wtdMcapFund, Math.max(kpi.wtdMcapFund, kpi.wtdMcapIndex, 1))">
+            </div>
+          </div>
+          <span class="kpi-mcap-num">{{ fmt(kpi.wtdMcapFund) }}</span>
+          <small class="kpi-mcap-sub">WTD. Avg.<br>MCAP Fund</small>
+        </div>
+        <div class="kpi-mcap-col">
+          <span class="kpi-mcap-bar-label">Index</span>
+          <div class="kpi-mcap-bar-track">
+            <div class="kpi-mcap-bar index"
+                 [style.height]="barWidth(kpi.wtdMcapIndex, Math.max(kpi.wtdMcapFund, kpi.wtdMcapIndex, 1))">
+            </div>
+          </div>
+          <span class="kpi-mcap-num">{{ fmt(kpi.wtdMcapIndex) }}</span>
+          <small class="kpi-mcap-sub">WTD. Avg.<br>MCAP Index</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Cap Exposure -->
+    <div class="kpi-card">
+      <span class="kpi-card-label">Market Cap Exposure</span>
+      <div class="kpi-mcap-exp-donuts">
+        <div class="kpi-mcap-exp-item" *ngFor="let s of mcapExpDonuts">
+          <svg width="70" height="70" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="18" fill="none" class="donut-track" stroke-width="5"/>
+            <circle cx="22" cy="22" r="18" fill="none"
+                    [attr.stroke]="s.color" stroke-width="5"
+                    stroke-linecap="round"
+                    [attr.stroke-dasharray]="donutDash(s.pct)"
+                    stroke-dashoffset="28.3"
+                    transform="rotate(-90 22 22)"/>
+            <text x="22" y="25" text-anchor="middle" font-size="8.5" font-weight="700"
+                  class="donut-text">{{ n1(+s.pct) }}%</text>
+          </svg>
+          <span class="kpi-mcap-exp-lbl">{{ s.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rating & Risk -->
+    <div class="kpi-card">
+      <span class="kpi-card-label">Rating %</span>
+      <div class="kpi-rating-grid">
+        <div class="kpi-rat-item" *ngFor="let r of ratingCD">
+          <svg width="70" height="70" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="18" fill="none"
+                    class="donut-track" stroke-width="5"/>
+            <circle cx="22" cy="22" r="18" fill="none"
+                    [attr.stroke]="ratingColor(r.label)"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                    [attr.stroke-dasharray]="donutDash(r.fundPct)"
+                    stroke-dashoffset="28.3"
+                    transform="rotate(-90 22 22)"/>
+            <text x="22" y="26" text-anchor="middle"
+                  font-size="9" font-weight="800"
+                  [attr.fill]="ratingColor(r.label)">{{ r.label }}</text>
+          </svg>
+          <span class="kpi-rat-sub">RATING WTG %:</span>
+          <span class="kpi-rat-val" [ngClass]="ratingClass(r.label)">{{ n1(r.fundPct) }}%</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /kpi-strip -->
+
+  <!-- ── TAB BAR ───────────────────────────────────────────────── -->
+  <div class="sc-tab-bar">
+    <!-- Fund Report tab -->
+    <button class="sc-tab" [class.sc-tab--active]="activeTab === 'fund'" (click)="activeTab = 'fund'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      Fund Report
+    </button>
+    <!-- Style Analysis tab -->
+    <button class="sc-tab" [class.sc-tab--active]="activeTab === 'style'" (click)="activeTab = 'style'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+      Style Analysis
+    </button>
+
+    <!-- Right: price tick + export buttons -->
+    <div class="sc-tab-bar-right">
+      <span class="sc-tick-label">Price ticks as on :&nbsp;<strong>{{ scDate }}&nbsp;00:00</strong></span>
+      <button class="sc-export-btn sc-export-btn--red" title="Export PDF">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        PDF
+      </button>
+      <button class="sc-export-btn sc-export-btn--grn" title="Export Excel">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        XLS
+      </button>
+    </div>
+  </div>
+
+  <!-- ── FILTER ROW (Fund Report tab only) ────────────────────── -->
+  <div class="sc-filter-row" *ngIf="activeTab === 'fund'">
+    <div class="sc-filters">
+      <!-- Radio-style: Only Fund / Only Index -->
+      <label class="sc-fl sc-fl--radio" [class.sc-fl--locked]="noPosition">
+        <span class="sc-radio" [class.sc-radio--on]="onlyFund && !noPosition"></span>
+        <input type="checkbox" [(ngModel)]="onlyFund" [disabled]="noPosition" (ngModelChange)="onFilterChange()" style="display:none"> Only Fund
+      </label>
+      <label class="sc-fl sc-fl--radio">
+        <span class="sc-radio" [class.sc-radio--on]="onlyIndex"></span>
+        <input type="checkbox" [(ngModel)]="onlyIndex" (ngModelChange)="onFilterChange()" style="display:none"> Only Index
+      </label>
+      <!-- Pill-style: remaining filters -->
+      <button class="sc-fpill" [class.sc-fpill--on]="noPosition"   (click)="noPosition=!noPosition;onNoPositionChange()">No position</button>
+      <button class="sc-fpill" [class.sc-fpill--on]="onlySector"   (click)="onlySector=!onlySector;onOnlySectorChange()">Only Sector</button>
+      <button class="sc-fpill" [class.sc-fpill--on]="subSector"    (click)="subSector=!subSector;onSubSectorChange()">Sub sector</button>
+      <button class="sc-fpill" [class.sc-fpill--on]="noSector"     (click)="noSector=!noSector;onNoSectorChange()">No sector</button>
+    </div>
+    <div class="sc-filter-right">
+      <button class="sc-col-btn" (click)="showColPanel = !showColPanel">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        Columns
+      </button>
+      <button class="sc-lay-btn">Update Layout</button>
+      <button class="sc-lay-btn">New Layout</button>
+      <div class="sc-search-wrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="sc-search-box" type="text" placeholder="Search here" [(ngModel)]="searchText" (input)="onSearch()" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Col panel -->
+  <ng-container *ngIf="showColPanel">
+    <div class="sc-col-panel-backdrop" (click)="showColPanel = false"></div>
+    <div class="sc-col-panel-bar">
+      <div class="sc-col-panel-header" (click)="$event.stopPropagation()">
+        <span class="sc-col-panel-title">Columns</span>
+        <button class="sc-col-reset-btn" (click)="resetColumns()">Reset to Default</button>
+      </div>
+      <label class="sc-cp-item" *ngFor="let col of colVis" (click)="$event.stopPropagation()">
+        <input type="checkbox" [(ngModel)]="col.visible" (ngModelChange)="toggleColumn(col.field, col.visible)">
+        {{ col.headerName }}
+      </label>
+    </div>
+  </ng-container>
+
+  <!-- ── AG GRID SECTION (Fund Report tab) ────────────────────── -->
+  <div class="sc-grid-wrap" *ngIf="activeTab === 'fund'">
+
+    <!-- Skeleton loading overlay -->
+    <div class="sc-skeleton-wrap" *ngIf="loading">
+      <div class="sc-sk-header">
+        <div class="sc-sk-hcell" *ngFor="let w of skColWidths" [style.width.px]="w"></div>
+      </div>
+      <ng-container *ngFor="let row of skRows">
+        <div class="sc-sk-row" [class.sc-sk-sector]="row.isSector">
+          <ng-container *ngIf="row.isSector; else secCells">
+            <div class="sc-sk-sector-bar"></div>
+          </ng-container>
+          <ng-template #secCells>
+            <div class="sc-sk-cell" *ngFor="let w of skColWidths; let i = index" [style.width.px]="w">
+              <div class="sc-sk-pulse" [style.width.%]="row.fills[i]"></div>
+            </div>
+          </ng-template>
+        </div>
+      </ng-container>
+    </div>
+
+    <ag-grid-angular
+      class="ag-theme-alpine"
+      [style.visibility]="loading ? 'hidden' : 'visible'"
+      [rowData]="filteredRows"
+      [columnDefs]="columnDefs"
+      [defaultColDef]="defaultColDef"
+      [getRowClass]="getRowClass"
+      [postSortRows]="postSortRows"
+      [animateRows]="false"
+      [rowHeight]="28"
+      [headerHeight]="34"
+      [tooltipShowDelay]="2000"
+      [tooltipHideDelay]="3000"
+      style="width:100%;height:100%;"
+      (gridReady)="onGridReady($event)">
+    </ag-grid-angular>
+  </div>
+
+  <!-- ── STYLE ANALYSIS TABLES (Style Analysis tab only) ──────── -->
+
+  <!-- ── TOP ROW — 2 tables ───────────────────────────────────── -->
+  <div class="sc-grid" *ngIf="activeTab === 'style'">
+
+    <!-- Sector Investment Pattern -->
+    <div class="sc-card">
+      <div class="sc-card-title">
+        <svg class="sc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-6"/>
+        </svg>
+        Sector Investment Pattern
+      </div>
+      <div class="sc-table-wrap"><table class="sc-table">
+        <thead>
+          <tr>
+            <th class="t-left sortable" (click)="sortSector('sector')">Sector <span class="sort-icon">{{ sortIcon(sectorSort, 'sector') }}</span></th>
+            <th class="t-right sortable" (click)="sortSector('indexPct')">Index% <span class="sort-icon">{{ sortIcon(sectorSort, 'indexPct') }}</span></th>
+            <th class="t-right sortable" (click)="sortSector('fundPct')">Fund% <span class="sort-icon">{{ sortIcon(sectorSort, 'fundPct') }}</span></th>
+            <th class="t-center sortable" (click)="sortSector('owUw')">OW / UW <span class="sort-icon">{{ sortIcon(sectorSort, 'owUw') }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of sectorPattern; let i = index" [class.alt]="i % 2 === 1">
+            <td class="t-left">{{ r.sector }}</td>
+            <td class="t-right">{{ n2(r.indexPct) }}</td>
+            <td class="t-right">{{ n2(r.fundPct) }}</td>
+            <td class="pyramid-cell">
+              <div style="display:flex;align-items:center;gap:0">
+                <!-- negative side (grows leftward) -->
+                <div class="pyramid-neg-track">
+                  <div class="pyramid-neg-bar"
+                       [style.width]="r.owUw < 0 ? barWidth(Math.abs(r.owUw), owMax) : '0%'">
+                  </div>
+                </div>
+                <div class="pyramid-center-line"></div>
+                <!-- positive side -->
+                <div class="pyramid-pos-track">
+                  <div class="pyramid-pos-bar"
+                       [style.width]="r.owUw > 0 ? barWidth(r.owUw, owMax) : '0%'">
+                  </div>
+                </div>
+                <span class="pyramid-val" [ngClass]="owClass(r.owUw)">
+                  {{ r.owUw > 0 ? '+' : '' }}{{ n2(r.owUw) }}%
+                </span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- Top 20 Stocks -->
+    <div class="sc-card">
+      <div class="sc-card-title">
+        <svg class="sc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/>
+        </svg>
+        Top 20 Stocks
+      </div>
+      <div class="sc-table-wrap"><table class="sc-table">
+        <thead>
+          <tr>
+            <th class="t-left sortable" (click)="sortTop20('company')">Company Name <span class="sort-icon">{{ sortIcon(top20Sort, 'company') }}</span></th>
+            <th class="t-center sortable" (click)="sortTop20('rating')">Rating <span class="sort-icon">{{ sortIcon(top20Sort, 'rating') }}</span></th>
+            <th class="t-right sortable" (click)="sortTop20('indexPct')">Index% <span class="sort-icon">{{ sortIcon(top20Sort, 'indexPct') }}</span></th>
+            <th class="t-right sortable" (click)="sortTop20('fundPct')">Fund% <span class="sort-icon">{{ sortIcon(top20Sort, 'fundPct') }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of top20Stocks; let i = index" [class.alt]="i % 2 === 1">
+            <td class="t-left">{{ r.company }}</td>
+            <td class="t-center">
+              <span class="rat-badge" [ngClass]="ratingClass(r.rating)">{{ r.rating }}</span>
+            </td>
+            <td class="t-right">{{ n2(r.indexPct) }}%</td>
+            <td class="t-right">{{ n2(r.fundPct) }}%</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+  </div><!-- /top row -->
+
+  <!-- ── MIDDLE ROW — Historical Perf + Cos >1% ───────────────── -->
+  <div class="sc-grid" *ngIf="activeTab === 'style'">
+
+    <!-- Historical Performance -->
+    <div class="sc-card">
+      <div class="sc-card-title">
+        <svg class="sc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Historical <span style="color:#9ca3af;font-weight:400;margin-left:4px">PERFORMANCE</span>
+      </div>
+      <div class="sc-table-wrap"><table class="sc-table">
+        <thead>
+          <tr>
+            <th class="t-left sortable" (click)="sortPerf('peer')">Peers <span class="sort-icon">{{ sortIcon(perfSort, 'peer') }}</span></th>
+            <th class="t-right sortable" (click)="sortPerf('m1')">1M <span class="sort-icon">{{ sortIcon(perfSort, 'm1') }}</span></th>
+            <th class="t-right sortable" (click)="sortPerf('m3')">3M <span class="sort-icon">{{ sortIcon(perfSort, 'm3') }}</span></th>
+            <th class="t-right sortable" (click)="sortPerf('m6')">6M <span class="sort-icon">{{ sortIcon(perfSort, 'm6') }}</span></th>
+            <th class="t-right sortable" (click)="sortPerf('y1')">1Y <span class="sort-icon">{{ sortIcon(perfSort, 'y1') }}</span></th>
+            <th class="t-right sortable" (click)="sortPerf('y3')">3Y <span class="sort-icon">{{ sortIcon(perfSort, 'y3') }}</span></th>
+            <th class="t-right sortable" (click)="sortPerf('y5')">5Y <span class="sort-icon">{{ sortIcon(perfSort, 'y5') }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of historicalPerf; let i = index"
+              [class.alt]="i % 2 === 1"
+              [class.row-hl]="r.isHighlight"
+              [class.row-idx]="r.isIndex">
+            <td class="t-left">{{ r.peer }}</td>
+            <td class="t-right" [ngClass]="retCls(r.m1)">{{ n1n(r.m1) }}</td>
+            <td class="t-right" [ngClass]="retCls(r.m3)">{{ n1n(r.m3) }}</td>
+            <td class="t-right" [ngClass]="retCls(r.m6)">{{ n1n(r.m6) }}</td>
+            <td class="t-right" [ngClass]="retCls(r.y1)">{{ n1n(r.y1) }}</td>
+            <td class="t-right" [ngClass]="retCls(r.y3)">{{ n1n(r.y3) }}</td>
+            <td class="t-right" [ngClass]="retCls(r.y5)">{{ n1n(r.y5) }}</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- Cos@ >1% WT IN INDEX -->
+    <div class="sc-card">
+      <div class="sc-card-title">
+        <svg class="sc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Cos&#64; &gt;1% <span style="color:#9ca3af;font-weight:400;margin-left:4px">WT IN INDEX</span>
+      </div>
+      <div class="sc-table-wrap"><table class="sc-table">
+        <thead>
+          <tr>
+            <th class="t-left sortable" (click)="sortCosGt1('company')">Company <span class="sort-icon">{{ sortIcon(cosGt1Sort, 'company') }}</span></th>
+            <th class="t-center sortable" (click)="sortCosGt1('rating')">Rating <span class="sort-icon">{{ sortIcon(cosGt1Sort, 'rating') }}</span></th>
+            <th class="t-right sortable" (click)="sortCosGt1('indexPct')">Index% <span class="sort-icon">{{ sortIcon(cosGt1Sort, 'indexPct') }}</span></th>
+            <th class="t-right sortable" (click)="sortCosGt1('fundPct')">Fund% <span class="sort-icon">{{ sortIcon(cosGt1Sort, 'fundPct') }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of cosGt1; let i = index" [class.alt]="i % 2 === 1">
+            <td class="t-left">{{ r.company }}</td>
+            <td class="t-center">
+              <span class="rat-badge" [ngClass]="ratingClass(r.rating)">{{ r.rating }}</span>
+            </td>
+            <td class="t-right">{{ n2(r.indexPct) }}%</td>
+            <td class="t-right">{{ n2(r.fundPct) }}%</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+  </div><!-- /middle row -->
+
+  <!-- ── BOTTOM ROW — 2 charts ─────────────────────────────────── -->
+  <div class="sc-grid" *ngIf="activeTab === 'style'">
+
+    <!-- Rating Exposure — dual bars -->
+    <div class="sc-card">
+      <div class="sc-card-title">
+        <svg class="sc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        Rating Exposure
+      </div>
+      <div class="sc-chart-body">
+        <div class="hb-legend">
+          <span><span class="hb-dot fund"></span>Fund</span>
+          <span><span class="hb-dot index"></span>Index</span>
+        </div>
+        <div class="dual-rows">
+          <div class="dual-row" *ngFor="let r of ratingExposure">
+            <span class="dual-label" [ngClass]="ratingClass(r.label)">{{ r.label }}</span>
+            <div class="dual-bars">
+              <div class="dual-bar-wrap">
+                <div class="dual-bar fund" [style.width]="barWidth(r.fundPct, ratingMax)"></div>
+              </div>
+              <div class="dual-bar-wrap">
+                <div class="dual-bar index" [style.width]="barWidth(r.indexPct, ratingMax)"></div>
+              </div>
+            </div>
+            <div class="dual-values">
+              <span>{{ n1(r.fundPct) }}%</span>
+              <span>{{ n1(r.indexPct) }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Holdings Pattern + MCAP -->
+    <div class="sc-card">
+      <div class="sc-card-title">
+        <svg class="sc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="2" y="7" width="4" height="14"/><rect x="9" y="4" width="4" height="17"/>
+          <rect x="16" y="10" width="4" height="11"/>
+        </svg>
+        Holdings Pattern &amp; MCAP Exposure
+      </div>
+      <div class="sc-chart-body">
+        <!-- Holdings Pattern -->
+        <div class="hb-legend">
+          <span><span class="hb-dot fund"></span>Fund</span>
+          <span><span class="hb-dot index"></span>Index</span>
+        </div>
+        <div class="dual-rows">
+          <div class="dual-row" *ngFor="let r of holdingsPattern">
+            <span class="dual-label">{{ r.label }}</span>
+            <div class="dual-bars">
+              <div class="dual-bar-wrap">
+                <div class="dual-bar fund"  [style.width]="barWidth(r.fundPct,  holdingMax)"></div>
+              </div>
+              <div class="dual-bar-wrap">
+                <div class="dual-bar index" [style.width]="barWidth(r.indexPct, holdingMax)"></div>
+              </div>
+            </div>
+            <div class="dual-values">
+              <span>{{ n1(r.fundPct) }}%</span>
+              <span>{{ n1(r.indexPct) }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div style="border-top:1px solid rgba(255,255,255,0.06);margin:2px 0"></div>
+
+        <!-- MCAP bars (padded top so Fund callout isn't clipped) -->
+        <div class="mcap-bars-wrap">
+        <!-- MCAP — Fund row -->
+        <div class="mcap-dual-row">
+          <span class="mcap-row-label">Fund</span>
+          <div class="mcap-bar-col">
+            <!-- Rest callout ABOVE fund bar with down-arrow -->
+            <div class="mcap-rest-callout mcap-rest-callout--above" *ngIf="fundRestPct > 0 && fundRestPct < 5">
+              Rest: {{ n1(fundRestPct) }}%<span class="mcap-arrow"></span>
+            </div>
+            <div class="mcap-bar-wrap">
+              <div class="mcap-bar">
+                <div class="mcap-seg" *ngFor="let s of mcapFundSegments"
+                     [style.width]="s.pct + '%'"
+                     [style.background]="s.color"
+                     [class.mcap-seg--small]="s.pct < 5">
+                  <span *ngIf="+s.pct >= 5">{{ n1(+s.pct) }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- MCAP — Index row -->
+        <div class="mcap-dual-row">
+          <span class="mcap-row-label">Index</span>
+          <div class="mcap-bar-col">
+            <div class="mcap-bar-wrap">
+              <div class="mcap-bar">
+                <div class="mcap-seg" *ngFor="let s of mcapIndexSegments"
+                     [style.width]="s.pct + '%'"
+                     [style.background]="s.color"
+                     [class.mcap-seg--small]="s.pct < 5">
+                  <span *ngIf="+s.pct >= 5">{{ n1(+s.pct) }}%</span>
+                </div>
+              </div>
+            </div>
+            <!-- Rest callout BELOW index bar with up-arrow -->
+            <div class="mcap-rest-callout mcap-rest-callout--below" *ngIf="indexRestPct > 0 && indexRestPct < 5">
+              Rest: {{ n1(indexRestPct) }}%<span class="mcap-arrow"></span>
+            </div>
+          </div>
+        </div>
+        </div><!-- /mcap-bars-wrap -->
+        <!-- MCAP legend -->
+        <div class="mcap-legend">
+          <span *ngFor="let s of mcapFundSegments" class="mcap-legend-item">
+            <span class="mcap-legend-dot" [style.background]="s.color"></span>
+            {{ s.label }}
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /bottom row -->
+
+  </div><!-- /sc-main -->
+
+</div>

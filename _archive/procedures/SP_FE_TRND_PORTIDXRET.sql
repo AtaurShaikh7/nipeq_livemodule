@@ -1,0 +1,1 @@
+PROCEDURE SP_FE_TRND_PORTIDXRET" (FundID in number, IndexID in number, xmlout out CLOB)

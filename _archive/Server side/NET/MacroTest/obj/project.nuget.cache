@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "gl0LT/Ckywk=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\sa_pim_windows\\Downloads\\dotNET\\Macrotest\\MacroTest.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\sa_pim_windows\\.nuget\\packages\\microsoft.office.interop.excel\\16.0.18925.20022\\microsoft.office.interop.excel.16.0.18925.20022.nupkg.sha512"
+  ],
+  "logs": []
+}

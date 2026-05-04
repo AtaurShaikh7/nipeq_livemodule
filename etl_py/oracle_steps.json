@@ -1,0 +1,309 @@
+{
+  "Steps": [
+    {
+      "Name": "FUTURE OPTIONS MASTER",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_FUT_OPTSMASTER_XLS; END;",
+      "Validations": [
+        {
+          "Name": "future_options_master_src count",
+          "Sql": "SELECT COUNT(*) FROM future_options_master_src",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "CORPORATE ACTIONS EXC",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_CORPACTEXC_XLS; END;",
+      "Validations": [
+        {
+          "Name": "CORPORATE_ACTIONS_EXC_SRC count for effdate",
+          "Sql": "SELECT COUNT(*) FROM CORPORATE_ACTIONS_EXC_SRC WHERE TRUNC(EFFECTIVE_DATE) = :effdate",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "CORPORATE ACTIONS",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_CORPACTIONS_XLS; END;",
+      "Validations": []
+    },
+    {
+      "Name": "DAILY EOD PRICES",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_DAILY_EOD_PRICES_XLS; END;",
+      "Validations": [
+        {
+          "Name": "DAILY_SECURITY_PRICES_SRC count for effdate",
+          "Sql": "SELECT COUNT(*) FROM DAILY_SECURITY_PRICES_SRC WHERE TRUNC(EFFECTIVE_DATE) = :effdate",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "INDEX RETURNS",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_INDEX_RETURNS_XLS; END;",
+      "Validations": [
+        {
+          "Name": "INDEX_RETURNS_SRC count for effdate",
+          "Sql": "SELECT COUNT(*) FROM INDEX_RETURNS_SRC WHERE TRUNC(EFFECTIVE_DATE) = :effdate",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "NAV RETURNS",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_NAV_RETURNS_XLS; END;",
+      "Validations": [
+        {
+          "Name": "NAV_RETURNS_SRC count for effdate",
+          "Sql": "SELECT COUNT(*) FROM NAV_RETURNS_SRC WHERE TRUNC(EFFECTIVE_DATE) = :effdate",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "FUND HOLDINGS",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_FUNDHOLDINGS_XLS; END;",
+      "Validations": [
+        {
+          "Name": "FUND_HOLDINGS_SRC count for effdate",
+          "Sql": "SELECT COUNT(*) FROM FUND_HOLDINGS_SRC WHERE TRUNC(HOLDING_DATE) = :effdate",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "DAILY PRICES",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_DAILYPRICES_XLS; END;",
+      "Validations": []
+    },
+    {
+      "Name": "TRANSACTION DATA",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_TXNDATA_XLS; END;",
+      "Validations": [
+        {
+          "Name": "TRANSACTION_DATA_SRC count for effdate",
+          "Sql": "SELECT COUNT(*) FROM TRANSACTION_DATA_SRC WHERE TRUNC(TRANSACTION_DATE) = :effdate",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "FUND NAV",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_FUNDNAV_XLS; END;",
+      "Validations": [
+        {
+          "Name": "Fund_NAV_Src count for effdate",
+          "Sql": "SELECT COUNT(*) FROM Fund_NAV_Src WHERE TRUNC(VALUE_DATE) = :effdate",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "INDEX DATA",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_INDEXDATA_XLS; END;",
+      "Validations": [
+        {
+          "Name": "Index_Data_Src count for effdate",
+          "Sql": "SELECT COUNT(*) FROM Index_Data_Src WHERE TRUNC(EFFECTIVE_DATE) = :effdate",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "INDEX DATA TRI",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_INDEXDATATRI_XLS; END;",
+      "Validations": [
+        {
+          "Name": "Index_Data_Src TRI count for effdate",
+          "Sql": "SELECT COUNT(*) FROM Index_Data_Src WHERE TRUNC(EFFECTIVE_DATE) = :effdate AND UPPER(index_code) LIKE '%TRI%'",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "INDEX PRICES",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_INDEXPRICES_XLS; END;",
+      "Validations": [
+        {
+          "Name": "Index_Prices_Src count for effdate",
+          "Sql": "SELECT COUNT(*) FROM Index_Prices_Src WHERE TRUNC(VALUE_DATE) = :effdate",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "AVERAGE VOLUME",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_AVG_VOL_XLS; END;",
+      "Validations": [
+        {
+          "Name": "AVERAGE_VOLUME_SRC count for effdate",
+          "Sql": "SELECT COUNT(*) FROM AVERAGE_VOLUME_SRC WHERE TRUNC(EFFECTIVE_DATE) = :effdate",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "MODEL DATA",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_INDEXDATA_MODEL_XLS; END;",
+      "Validations": []
+    },
+    {
+      "Name": "MODEL PORTFOLIO",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_MODELPORTFOLIO_XLS; END;",
+      "Validations": []
+    },
+    {
+      "Name": "DION FNO MASTER",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN SP_LDG_DION_FNO_MASTER_XLS; END;",
+      "Validations": [
+        {
+          "Name": "DION_FNO_MASTER_SRC count",
+          "Sql": "SELECT COUNT(*) FROM DION_FNO_MASTER_SRC",
+          "Type": "NonZeroCount"
+        },
+        {
+          "Name": "ETL STAGE 1 status check",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "FINAL STATUS CHECK",
+      "Enabled": true,
+      "ProcedureBlock": null,
+      "Validations": [
+        {
+          "Name": "ETL STAGE 1 status must be NULL",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 1'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "SET ETL STAGE 1 DATAREADY",
+      "Enabled": true,
+      "ProcedureBlock": "UPDATE daily_process_stats SET dataready=1 WHERE process_name IN ('ETL STAGE 1')",
+      "Validations": []
+    },
+    {
+      "Name": "TRANSFORMATION",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN sp_transform_main; END;",
+      "Validations": [
+        {
+          "Name": "ETL STAGE 2 status must be NULL after sp_transform_main",
+          "Sql": "SELECT status FROM daily_process_stats WHERE process_name='ETL STAGE 2'",
+          "Type": "MustBeNull"
+        }
+      ]
+    },
+    {
+      "Name": "UPDATE DAILY ATTRIB (currdatadate, lastdatadate, rundate, dataready=0)",
+      "Enabled": true,
+      "ProcedureBlock": "UPDATE daily_process_stats SET currdatadate=(SELECT currdatadate FROM daily_process_stats WHERE process_name = 'SRC DATA COLLATION'), lastdatadate=(SELECT lastdatadate FROM daily_process_stats WHERE process_name = 'SRC DATA COLLATION'), rundate=(SELECT rundate FROM daily_process_stats WHERE process_name = 'SRC DATA COLLATION'), dataready=0 WHERE process_name IN ('DAILY ATTRIB')",
+      "Validations": []
+    },
+    {
+      "Name": "ATTRIBUTION",
+      "Enabled": true,
+      "ProcedureBlock": "BEGIN sp_valat_main; END;",
+      "Validations": []
+    },
+    {
+      "Name": "SET DAILY ATTRIB DATAREADY",
+      "Enabled": true,
+      "ProcedureBlock": "UPDATE daily_process_stats SET dataready=1 WHERE process_name IN ('DAILY ATTRIB')",
+      "Validations": []
+    },
+    {
+      "Name": "UPDATE BUSINESS_CALENDAR DATALOAD_STATUS",
+      "Enabled": true,
+      "ProcedureBlock": "UPDATE business_calendar SET dataload_status=1 WHERE effective_date IN (SELECT MAX(effective_date) FROM fund_holdings) AND businessday_flag=1",
+      "Validations": []
+    },
+    {
+      "Name": "COMMIT",
+      "Enabled": true,
+      "ProcedureBlock": "COMMIT",
+      "Validations": []
+    }
+  ]
+}

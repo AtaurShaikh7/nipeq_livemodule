@@ -1,0 +1,465 @@
+// Project is now built for .NET 8 SDK (TargetFramework: net8.0).
+// You can use C# 12 features, top-level statements, trimsafe APIs and modern DI/config conventions.
+
+// --- Folder structure remains unchanged ---
+// ├── App/
+// │   ├── Program.cs
+// ├── Services/
+// │   ├── Logger.cs
+// │   ├── OracleService.cs
+// │   └── EtlOrchestrator.cs
+// ├── appsettings.json
+// ├── queries.txt
+
+// --- appsettings.json ---
+{
+  "Oracle": {
+    "ConnectionString": "User Id=myuser;Password=mypassword;Data Source=mydatasource"
+  },
+  "Logging": {
+    "LogFilePath": "log.txt"
+  }
+}
+
+// --- Services/Logger.cs ---
+using System.Text.Json;
+
+namespace Services;
+
+public class Logger
+{
+    private readonly string _filePath;
+    private readonly object _fileLock = new();
+
+    public Logger(string filePath)
+    {
+        _filePath = filePath;
+    }
+
+    private void Log(string level, string message, object? extra = null)
+    {
+        var entry = new
+        {
+            Timestamp = DateTime.UtcNow.ToString("O"),
+            Level = level,
+            Message = message,
+            Extra = extra
+        };
+        lock (_fileLock)
+        {
+            File.AppendAllText(_filePath, JsonSerializer.Serialize(entry) + Environment.NewLine);
+        }
+    }
+
+    public void LogInfo(string message, object? extra = null)
+    {
+        Log("INFO", message, extra);
+    }
+    public void LogError(string message, Exception? ex = null)
+    {
+        Log("ERROR", message, ex is not null ? new { Exception = ex.ToString() } : null);
+    }
+}
+
+// --- Services/QueryProvider.cs ---
+// Utility to load queries/procedures from queries.txt and provide by name.
+
+using System.Text.RegularExpressions;
+
+namespace Services;
+
+public class QueryProvider
+{
+    private readonly Dictionary<string, string> _queries = new();
+
+    public QueryProvider(string queriesFilePath)
+    {
+        if (!File.Exists(queriesFilePath))
+            throw new FileNotFoundException("queries.txt not found", queriesFilePath);
+
+        var lines = File.ReadAllLines(queriesFilePath);
+        string? currentKey = null;
+        var currentSql = new List<string>();
+        foreach (var line in lines)
+        {
+            var match = Regex.Match(line, @"^--\s*(\w+):");
+            if (match.Success)
+            {
+                if (currentKey is not null)
+                    _queries[currentKey] = string.Join(Environment.NewLine, currentSql).Trim();
+
+                currentKey = match.Groups[1].Value.Trim();
+                currentSql.Clear();
+            }
+            else if (currentKey is not null)
+            {
+                currentSql.Add(line);
+            }
+        }
+        if (currentKey is not null)
+            _queries[currentKey] = string.Join(Environment.NewLine, currentSql).Trim();
+    }
+
+    public string this[string key] => _queries.TryGetValue(key, out var v)
+        ? v
+        : throw new KeyNotFoundException($"Query or proc '{key}' not found in queries.txt.");
+}
+
+// --- Services/OracleService.cs ---
+using Oracle.ManagedDataAccess.Client;
+using System.Data;
+
+namespace Services;
+
+public class OracleService
+{
+    private readonly string _connectionString;
+
+    public OracleService(string connectionString)
+    {
+        _connectionString = connectionString;
+    }
+
+    public OracleConnection GetOpenConnection()
+    {
+        var conn = new OracleConnection(_connectionString);
+        conn.Open();
+        return conn;
+    }
+
+    public DateTime? GetEffDate(Logger logger, QueryProvider queryProvider)
+    {
+        try
+        {
+            using var conn = GetOpenConnection();
+            string sql = queryProvider["GetEffDate"];
+            using var cmd = new OracleCommand(sql, conn);
+
+            cmd.Parameters.Add(new OracleParameter("dload", OracleDbType.Int32) { Value = 0 });
+            cmd.Parameters.Add(new OracleParameter("bday", OracleDbType.Int32) { Value = 1 });
+
+            var result = cmd.ExecuteScalar();
+            if (result is not null and not DBNull)
+            {
+                if (result is DateTime dt)
+                    return dt;
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Error retrieving effdate from business_calendar.", ex);
+            return null;
+        }
+    }
+}
+
+// --- Services/EtlOrchestrator.cs ---
+// Implements the ETL orchestration using queries/procs from queries.txt.
+
+using Oracle.ManagedDataAccess.Client;
+using System.Data;
+
+namespace Services;
+
+public class EtlOrchestrator
+{
+    private readonly Logger _logger;
+    private readonly OracleService _oracleService;
+    private readonly QueryProvider _queries;
+
+    public EtlOrchestrator(Logger logger, OracleService oracleService, QueryProvider queries)
+    {
+        _logger = logger;
+        _oracleService = oracleService;
+        _queries = queries;
+    }
+
+    public bool Run()
+    {
+        _logger.LogInfo("ETL Orchestration started.");
+        DateTime? effDate = null;
+
+        // 1. Fetch effdate
+        try
+        {
+            effDate = _oracleService.GetEffDate(_logger, _queries);
+            if (!effDate.HasValue)
+            {
+                _logger.LogError("Effdate could not be retrieved; ETL exiting.");
+                return false;
+            }
+            _logger.LogInfo($"Fetched effdate: {effDate.Value:yyyy-MM-dd}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failed to fetch effdate", ex);
+            return false;
+        }
+
+        using var conn = _oracleService.GetOpenConnection();
+
+        // 2. Update daily_process_stats using :effdate parameter
+        if (!Step_UpdateDailyProcessStats(conn, effDate.Value))
+            return false;
+
+        // 3. Execute and validate each ETL step (using procs & queries from queries.txt)
+        if (!Step_GenericProcAndValidation(conn, effDate.Value, "SP_TRANSF_CREATE_MODELS_D", "SP_TRANSF_CREATE_MODELS_D_Validation", new() { ["RUNDATE"] = effDate.Value }))
+            return false;
+
+        if (!Step_GenericProcAndValidation(conn, effDate.Value, "SP_TRANSF_CREATE_MODELS", "SP_TRANSF_CREATE_MODELS_Validation"))
+            return false;
+
+        if (!Step_GenericProcAndValidation(conn, effDate.Value, "SP_TRANSF_CORPACTIONS", "SP_TRANSF_CORPACTIONS_Validation"))
+            return false;
+
+        if (!Step_GenericProcAndValidation(conn, effDate.Value, "SP_TRANSF_CORPACTIONSEXC", "SP_TRANSF_CORPACTIONSEXC_Validation"))
+            return false;
+
+        if (!Step_GenericProcAndValidation(conn, effDate.Value, "SP_LDG_CORPACTEXC_XLS", "SP_LDG_CORPACTEXC_XLS_Validation"))
+            return false;
+
+        // 4. Execute SP_TRANSFORM_MAIN and validate process status
+        if (!Step_TransformMainAndStatus(conn, effDate.Value))
+            return false;
+
+        // 5. Execute SP_VALAT_MAIN
+        if (!Step_ValatMain(conn, effDate.Value))
+            return false;
+
+        // 6. Final update to daily_process_stats (set status to COMPLETE).
+        if (!Step_FinalizeProcessStats(conn, effDate.Value))
+            return false;
+
+        _logger.LogInfo("ETL Orchestration completed successfully.");
+        return true;
+    }
+
+    private bool Step_UpdateDailyProcessStats(OracleConnection conn, DateTime effDate)
+    {
+        try
+        {
+            string sql = _queries["UpdateDailyProcessStats"];
+            using var cmd = new OracleCommand(sql, conn);
+            cmd.Parameters.Add("effdate", OracleDbType.Date).Value = effDate;
+            int affected = cmd.ExecuteNonQuery();
+            _logger.LogInfo("Updated daily_process_stats", new { affected, effdate = effDate });
+            if (affected == 0)
+            {
+                _logger.LogError("No rows updated in daily_process_stats for given effdate. ETL exiting.");
+                return false;
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failed to update daily_process_stats.", ex);
+            return false;
+        }
+    }
+
+    private bool Step_GenericProcAndValidation(
+        OracleConnection conn, DateTime effDate,
+        string procName, string validationQueryName,
+        Dictionary<string, object>? procParams = null)
+    {
+        // Execute stored procedure from queries.txt
+        try
+        {
+            string procText = _queries[procName];
+            using var cmd = new OracleCommand(procText, conn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+            if (procParams is not null)
+            {
+                foreach (var kvp in procParams)
+                {
+                    cmd.Parameters.Add(kvp.Key, OracleDbType.Date).Value = kvp.Value;
+                }
+            }
+            cmd.ExecuteNonQuery();
+            _logger.LogInfo($"Executed stored procedure: {procName}", new { effdate = effDate });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failure executing procedure: {procName}", ex);
+            return false;
+        }
+
+        // Validation query from queries.txt
+        try
+        {
+            string validationText = _queries[validationQueryName];
+            using var cmd = new OracleCommand(validationText, conn);
+            if (validationText.Contains(":effdate"))
+                cmd.Parameters.Add("effdate", OracleDbType.Date).Value = effDate;
+
+            object result = cmd.ExecuteScalar();
+            int count = Convert.ToInt32(result);
+            _logger.LogInfo($"Validation after {procName}: {validationQueryName} = {count}");
+            if (count < 0)
+            {
+                _logger.LogError($"Validation failed after {procName} (unexpected negative count). ETL exiting.");
+                return false;
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Validation error after executing {procName}", ex);
+            return false;
+        }
+    }
+
+    private bool Step_TransformMainAndStatus(OracleConnection conn, DateTime effDate)
+    {
+        // Execute SP_TRANSFORM_MAIN
+        try
+        {
+            string procText = _queries["SP_TRANSFORM_MAIN"];
+            using var cmd = new OracleCommand(procText, conn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+            cmd.Parameters.Add("effdate", OracleDbType.Date).Value = effDate;
+            cmd.ExecuteNonQuery();
+            _logger.LogInfo("Executed stored procedure: SP_TRANSFORM_MAIN", new { effdate = effDate });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failure executing SP_TRANSFORM_MAIN", ex);
+            return false;
+        }
+
+        // Status validation: SELECT status query from queries.txt
+        try
+        {
+            string validationText = _queries["SP_TRANSFORM_MAIN_Validation"];
+            using var cmd = new OracleCommand(validationText, conn);
+            cmd.Parameters.Add("effdate", OracleDbType.Date).Value = effDate;
+            using var rdr = cmd.ExecuteReader();
+            if (!rdr.Read())
+            {
+                _logger.LogError("Status validation failed: no record for effdate.");
+                return false;
+            }
+            string? stat = rdr["status"]?.ToString();
+            _logger.LogInfo("Status validation after SP_TRANSFORM_MAIN", new { effdate = effDate, status = stat });
+            if (!string.Equals(stat, "SUCCESS", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _logger.LogError("Status after SP_TRANSFORM_MAIN not successful", new { status = stat });
+                return false;
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Status validation failure after SP_TRANSFORM_MAIN", ex);
+            return false;
+        }
+    }
+
+    private bool Step_ValatMain(OracleConnection conn, DateTime effDate)
+    {
+        // Execute SP_VALAT_MAIN
+        try
+        {
+            string procText = _queries["SP_VALAT_MAIN"];
+            using var cmd = new OracleCommand(procText, conn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+            cmd.Parameters.Add("effdate", OracleDbType.Date).Value = effDate;
+            cmd.ExecuteNonQuery();
+            _logger.LogInfo("Executed stored procedure: SP_VALAT_MAIN", new { effdate = effDate });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failure executing SP_VALAT_MAIN", ex);
+            return false;
+        }
+    }
+
+    private bool Step_FinalizeProcessStats(OracleConnection conn, DateTime effDate)
+    {
+        // Final: Mark daily_process_stats as COMPLETE
+        try
+        {
+            string sql = _queries["FinalizeProcessStats"];
+            using var cmd = new OracleCommand(sql, conn);
+            cmd.Parameters.Add("effdate", OracleDbType.Date).Value = effDate;
+            int affected = cmd.ExecuteNonQuery();
+            _logger.LogInfo("Final updates complete", new { affected, effdate = effDate });
+            if (affected == 0)
+            {
+                _logger.LogError("Final update affected no rows. ETL exiting.");
+                return false;
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failure during final updates.", ex);
+            return false;
+        }
+    }
+}
+
+// --- App/Program.cs ---
+// Uses top-level statements syntax (C# 9+ recommended in .NET 8).
+// Modern .NET 8 DI and configuration; console app usage.
+
+using Microsoft.Extensions.Configuration;
+using Services;
+
+IConfigurationRoot config;
+try
+{
+    config = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json")
+        .Build();
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"Unable to load configuration: {ex}");
+    return 99;
+}
+
+string? connStr = config["Oracle:ConnectionString"];
+string? logPath = config["Logging:LogFilePath"] ?? "log.txt";
+string queriesPath = Path.Combine(Directory.GetCurrentDirectory(), "queries.txt");
+
+if (string.IsNullOrWhiteSpace(connStr))
+{
+    Console.Error.WriteLine("Oracle:ConnectionString missing in appsettings.json");
+    return 98;
+}
+
+QueryProvider queries;
+try
+{
+    queries = new QueryProvider(queriesPath);
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"Unable to load queries.txt: {ex}");
+    return 97;
+}
+
+var logger = new Logger(logPath);
+var oracleService = new OracleService(connStr);
+var orchestrator = new EtlOrchestrator(logger, oracleService, queries);
+
+try
+{
+    bool success = orchestrator.Run();
+    return success ? 0 : 1;
+}
+catch (Exception ex)
+{
+    logger.LogError("Fatal error", ex);
+    return 2;
+}

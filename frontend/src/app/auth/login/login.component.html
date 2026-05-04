@@ -1,0 +1,48 @@
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="logo-area">
+      <div class="logo-text">ValueAT</div>
+      <div class="logo-sub">Portfolio Analytics Platform</div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="field-group">
+        <label class="field-label">Email / Login ID</label>
+        <input matInput class="field-input" type="text" formControlName="loginId"
+               autocomplete="username" placeholder="Enter your login ID" />
+        @if (form.get('loginId')?.hasError('required') && form.get('loginId')?.touched) {
+          <div class="field-error">Login ID is required</div>
+        }
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <div class="pw-wrap">
+          <input class="field-input" [type]="hidePassword ? 'password' : 'text'"
+                 formControlName="password" autocomplete="current-password"
+                 placeholder="Enter your password" />
+          <button type="button" class="eye-btn" (click)="hidePassword = !hidePassword">
+            {{ hidePassword ? '👁' : '🙈' }}
+          </button>
+        </div>
+        @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+          <div class="field-error">Password is required</div>
+        }
+      </div>
+
+      @if (error) {
+        <div class="error-banner">{{ error }}</div>
+      }
+
+      <button type="submit" class="login-btn" [disabled]="loading">
+        @if (loading) {
+          <span class="btn-spinner"></span> Signing in…
+        } @else {
+          Sign In
+        }
+      </button>
+    </form>
+
+    <div class="login-footer">Powered by Valuefy</div>
+  </div>
+</div>

@@ -1,0 +1,227 @@
+<div class="sa-root">
+
+  <!-- ══ ROW 1 ══════════════════════════════════════════════════════════ -->
+  <div class="sa-row">
+
+    <!-- Sector Investment Pattern -->
+    <div class="sa-panel">
+      <div class="sa-title">Sector-Wise <strong>INVESTMENT PATTERN</strong></div>
+      <div class="sa-table-wrap">
+        <table class="sa-table">
+          <thead>
+            <tr>
+              <th class="col-text" (click)="sortSector('sector')">
+                Sector <span class="sort-icon">{{ sortIcon(sectorSort, 'sector') }}</span>
+              </th>
+              <th class="col-num" (click)="sortSector('indexPct')">
+                Index (%) <span class="sort-icon">{{ sortIcon(sectorSort, 'indexPct') }}</span>
+              </th>
+              <th class="col-num" (click)="sortSector('fundPct')">
+                Fund (%) <span class="sort-icon">{{ sortIcon(sectorSort, 'fundPct') }}</span>
+              </th>
+              <th class="col-num" (click)="sortSector('owUw')">
+                OW / UW (%) <span class="sort-icon">{{ sortIcon(sectorSort, 'owUw') }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of sectorPattern; let i = index" [class.alt]="i % 2 === 1">
+              <td class="col-text">{{ r.sector }}</td>
+              <td class="col-num">{{ n1(r.indexPct) }}</td>
+              <td class="col-num">{{ n1(r.fundPct) }}</td>
+              <td class="col-num" [ngClass]="owClass(r.owUw)">{{ n1(r.owUw) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top 20 Stocks -->
+    <div class="sa-panel">
+      <div class="sa-title">Top 20 <strong>STOCKS OF SCHEME</strong></div>
+      <div class="sa-table-wrap">
+        <table class="sa-table">
+          <thead>
+            <tr>
+              <th class="col-text" (click)="sortTop20('company')">
+                Company <span class="sort-icon">{{ sortIcon(top20Sort, 'company') }}</span>
+              </th>
+              <th class="col-sm" (click)="sortTop20('rating')">
+                Rating <span class="sort-icon">{{ sortIcon(top20Sort, 'rating') }}</span>
+              </th>
+              <th class="col-num" (click)="sortTop20('indexPct')">
+                Index (%) <span class="sort-icon">{{ sortIcon(top20Sort, 'indexPct') }}</span>
+              </th>
+              <th class="col-num" (click)="sortTop20('fundPct')">
+                Fund (%) <span class="sort-icon">{{ sortIcon(top20Sort, 'fundPct') }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of top20Stocks; let i = index" [class.alt]="i % 2 === 1">
+              <td class="col-text">{{ r.company }}</td>
+              <td class="col-sm rating" [ngClass]="'rating-' + r.rating.toLowerCase()">{{ r.rating }}</td>
+              <td class="col-num">{{ n1(r.indexPct) }}</td>
+              <td class="col-num">{{ n1(r.fundPct) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /row1 -->
+
+  <!-- ══ ROW 2 ══════════════════════════════════════════════════════════ -->
+  <div class="sa-row">
+
+    <!-- Historical Performance -->
+    <div class="sa-panel">
+      <div class="sa-title">Historical <strong>PERFORMANCE</strong></div>
+      <div class="sa-table-wrap">
+        <table class="sa-table">
+          <thead>
+            <tr>
+              <th class="col-text" (click)="sortPerf('peer')">
+                Peers <span class="sort-icon">{{ sortIcon(perfSort, 'peer') }}</span>
+              </th>
+              <th class="col-num" (click)="sortPerf('m1')">1M <span class="sort-icon">{{ sortIcon(perfSort, 'm1') }}</span></th>
+              <th class="col-num" (click)="sortPerf('m3')">3M <span class="sort-icon">{{ sortIcon(perfSort, 'm3') }}</span></th>
+              <th class="col-num" (click)="sortPerf('m6')">6M <span class="sort-icon">{{ sortIcon(perfSort, 'm6') }}</span></th>
+              <th class="col-num" (click)="sortPerf('y1')">1Y <span class="sort-icon">{{ sortIcon(perfSort, 'y1') }}</span></th>
+              <th class="col-num" (click)="sortPerf('y3')">3Y <span class="sort-icon">{{ sortIcon(perfSort, 'y3') }}</span></th>
+              <th class="col-num" (click)="sortPerf('y5')">5Y <span class="sort-icon">{{ sortIcon(perfSort, 'y5') }}</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of historicalPerf; let i = index"
+                [class.alt]="i % 2 === 1"
+                [class.row-highlight]="r.isHighlight"
+                [class.row-index]="r.isIndex">
+              <td class="col-text">{{ r.peer }}</td>
+              <td class="col-num" [ngClass]="retClass(r.m1)">{{ n1(r.m1) }}</td>
+              <td class="col-num" [ngClass]="retClass(r.m3)">{{ n1(r.m3) }}</td>
+              <td class="col-num" [ngClass]="retClass(r.m6)">{{ n1(r.m6) }}</td>
+              <td class="col-num" [ngClass]="retClass(r.y1)">{{ n1(r.y1) }}</td>
+              <td class="col-num" [ngClass]="retClass(r.y3)">{{ n1(r.y3) }}</td>
+              <td class="col-num" [ngClass]="retClass(r.y5)">{{ n1(r.y5) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Cos @ >1% WT in Index -->
+    <div class="sa-panel">
+      <div class="sa-title">Cos&#64; &gt;1% <strong>WT IN INDEX</strong></div>
+      <div class="sa-table-wrap">
+        <table class="sa-table">
+          <thead>
+            <tr>
+              <th class="col-text" (click)="sortCosGt1('company')">
+                Company <span class="sort-icon">{{ sortIcon(cosGt1Sort, 'company') }}</span>
+              </th>
+              <th class="col-sm" (click)="sortCosGt1('rating')">
+                Rating <span class="sort-icon">{{ sortIcon(cosGt1Sort, 'rating') }}</span>
+              </th>
+              <th class="col-num" (click)="sortCosGt1('indexPct')">
+                Index (%) <span class="sort-icon">{{ sortIcon(cosGt1Sort, 'indexPct') }}</span>
+              </th>
+              <th class="col-num" (click)="sortCosGt1('fundPct')">
+                Fund (%) <span class="sort-icon">{{ sortIcon(cosGt1Sort, 'fundPct') }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of cosGt1; let i = index" [class.alt]="i % 2 === 1">
+              <td class="col-text">{{ r.company }}</td>
+              <td class="col-sm rating" [ngClass]="'rating-' + r.rating.toLowerCase()">{{ r.rating }}</td>
+              <td class="col-num">{{ n1(r.indexPct) }}</td>
+              <td class="col-num">{{ n1(r.fundPct) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /row2 -->
+
+  <!-- ══ ROW 3 ══════════════════════════════════════════════════════════ -->
+  <div class="sa-row sa-row--thirds">
+
+    <!-- Left: Rating + Holdings stacked -->
+    <div class="sa-col-left">
+
+      <!-- Rating Exposure -->
+      <div class="sa-panel sa-panel--compact">
+        <div class="sa-title">Rating <strong>EXPOSURE</strong></div>
+        <div class="sa-table-wrap sa-table-wrap--short">
+          <table class="sa-table">
+            <thead>
+              <tr>
+                <th class="col-text">Rating</th>
+                <th class="col-num">Index (%)</th>
+                <th class="col-num">Fund (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of ratingExposure; let i = index" [class.alt]="i % 2 === 1">
+                <td class="col-text rating" [ngClass]="'rating-' + r.label.toLowerCase()">{{ r.label }}</td>
+                <td class="col-num">{{ n1(r.indexPct) }}</td>
+                <td class="col-num">{{ n1(r.fundPct) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Holdings Pattern -->
+      <div class="sa-panel sa-panel--compact">
+        <div class="sa-title">Holdings <strong>PATTERN</strong></div>
+        <div class="sa-table-wrap sa-table-wrap--short">
+          <table class="sa-table">
+            <thead>
+              <tr>
+                <th class="col-text">Holding Pattern</th>
+                <th class="col-num">Index (%)</th>
+                <th class="col-num">Fund (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of holdingsPattern; let i = index" [class.alt]="i % 2 === 1">
+                <td class="col-text">{{ r.label }}</td>
+                <td class="col-num">{{ n1(r.indexPct) }}</td>
+                <td class="col-num">{{ n1(r.fundPct) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /col-left -->
+
+    <!-- Right: MCAP Exposure -->
+    <div class="sa-panel sa-panel--compact">
+      <div class="sa-title">MCAP <strong>EXPOSURE</strong></div>
+      <div class="sa-table-wrap sa-table-wrap--short">
+        <table class="sa-table">
+          <thead>
+            <tr>
+              <th class="col-text">MCAP</th>
+              <th class="col-num">Index (%)</th>
+              <th class="col-num">Fund (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of mcapExposure; let i = index" [class.alt]="i % 2 === 1">
+              <td class="col-text">{{ r.label }}</td>
+              <td class="col-num">{{ n1(r.indexPct) }}</td>
+              <td class="col-num">{{ n1(r.fundPct) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /row3 -->
+
+</div>

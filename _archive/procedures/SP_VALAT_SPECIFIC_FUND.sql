@@ -1,0 +1,1 @@
+PROCEDURE              SP_VALAT_SPECIFIC_FUND" (FundID in NUMBER, IndexID in NUMBER, FromDate in Date, ToDate in Date,LoginId in VARCHAR2,RFR IN NUMBER ,ResultSet out SYS_REFCURSOR)

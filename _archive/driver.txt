@@ -1,0 +1,2020 @@
+Option Explicit
+
+
+Private Declare PtrSafe Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" _
+    (ByVal hWnd As LongPtr, ByVal lpOperation As String, ByVal lpFile As String, ByVal _
+    lpParameters As String, ByVal lpDirectory As String, ByVal nShowCmd As Long) As LongPtr
+ 
+
+Public LogBook As Workbook
+Public CurrDateString As String
+Public CurrDataDate As Date
+Public ErrFlag As Integer
+Public LogBookCounter As Integer
+Public PrevLoadDate As Date
+Public MacroError As Integer
+Public DataReady As Integer
+Public Status As String
+Public ORADB As String
+Public UserID As String
+Public Password As String
+Public CurrSeg As String
+Public CurrSubProc As String
+Public RunProcedure As String
+Public ReLoadDate As Date
+Public DOMMacroFilePath As String
+Public ADVMacroFilePath As String
+Public PMSMacroFilePath As String
+Public OppTxnsFileName As String
+Public ComplianceOppTxnsFlag As Integer
+Public ComplianceOppGTxnsFlag As Integer
+Public DayRunCount As Integer
+Public LastRunCurrDate As Date
+Public HoldingFileName As String
+Public Const SW_SHOWNORMAL = 1
+Public Toreceiver As String
+Public Ccreceiver As String
+Public Bccreceiver As String
+Sub Main()
+
+On Error GoTo ErrMain
+Application.DisplayAlerts = False
+Application.ScreenUpdating = False
+
+Dim LogPath As String
+Dim LogFileCreated As Integer
+Dim CurrRun As Integer
+
+
+DataReady = 0
+Status = ""
+MacroError = 0
+ErrFlag = 0
+LogBookCounter = 1
+CurrDataDate = 0
+CurrDateString = ""
+PrevLoadDate = 0
+LogPath = ""
+CurrRun = 0
+LogFileCreated = 0
+
+'initialize database connect parameters
+ORADB = ThisWorkbook.Worksheets("Main").Range("B3").Value
+UserID = ThisWorkbook.Worksheets("Main").Range("B4").Value
+Password = ThisWorkbook.Worksheets("Main").Range("B5").Value
+
+'create log book for rundate
+LogPath = ThisWorkbook.Worksheets("Main").Range("B8").Value
+Workbooks.Add
+Set LogBook = ActiveWorkbook
+
+If FileExists(LogPath & "DriverLog_" & Application.Text(VBA.Date, "DD-MMM-YY") & ".xls") Then
+    Do Until LogFileCreated = 1
+            CurrRun = CurrRun + 1
+            If FileExists(LogPath & "DriverLog_" & Application.Text(VBA.Date, "DD-MMM-YY") & "_" & CurrRun & ".xls") Then
+            Else
+                LogBook.SaveAs LogPath & "DriverLog_" & Application.Text(VBA.Date, "DD-MMM-YY") & "_" & CurrRun & ".xls"
+                LogFileCreated = 1
+            End If
+    Loop
+Else
+    LogBook.SaveAs LogPath & "DriverLog_" & Application.Text(VBA.Date, "DD-MMM-YY") & ".xls"
+End If
+
+'Delete data if any reload request reigstered
+Call DeleteReloadData
+
+If ErrFlag = 0 Then
+Else
+    'Call SendErrorMail
+    GoTo ErrMain
+End If
+LogBook.Save
+
+Call MakeStatusTableOK
+
+If ErrFlag = 0 Then
+Else
+    'Call SendErrorMail
+    GoTo ErrMain
+End If
+
+'Process All for Domestic
+Call DomesticAttribution
+If ErrFlag = 0 Then
+Else
+    'Call SendErrorMail
+    'GoTo ErrMain
+End If
+
+If DayRunCount > 0 Then
+
+    Call SendSuccess_EMail
+            
+    If ErrFlag = 0 Then
+    Else
+        'Call SendErrorMail
+        GoTo ErrMain
+    End If
+
+End If
+
+
+'Create Daily Holding File and Email
+If DayRunCount > 0 Then
+    CurrDataDate = LastRunCurrDate
+    Call CreateHoldingFile
+    
+    
+    Call SendDailyReports
+    
+    'Call SendLivePDF
+    If ErrFlag = 0 Then
+    Else
+        'Call SendErrorMail
+        GoTo ErrMain
+    End If
+
+    'Send Email attachment
+    Call SendHoldingsFileMail
+    If ErrFlag = 0 Then
+    Else
+        'Call SendErrorMail
+        GoTo ErrMain
+    End If
+    
+    Call AlertsMain
+    If ErrFlag = 0 Then
+    Else
+        'Call SendErrorMail
+        GoTo ErrMain
+    End If
+    
+End If
+
+'Save and Close OUTPUT workbooks
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+
+Call CloseSaveOtherWorkBooks
+
+Exit Sub
+
+ErrMain:
+Call CloseSaveOtherWorkBooks
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+
+End Sub
+
+Sub CreateHoldingFile()
+
+On Error GoTo ErrCreateHoldingFile
+
+Application.DisplayAlerts = False
+Application.ScreenUpdating = False
+    
+    Dim cn As ADODB.Connection
+    Dim rs As ADODB.Recordset
+    Dim Cmd1 As New ADODB.Command
+    Set cn = New ADODB.Connection
+    Set rs = New ADODB.Recordset
+    Dim Parameter1 As ADODB.Parameter
+    
+    
+    Dim HoldCompBook As Workbook
+    Dim HoldCompSheetName As String
+    Dim OpRowCounter As Long
+    
+    Dim SQL As String
+       
+  ''initialize database connect parameters
+  ''below 6 lines are for testing only uncomment during live
+''    ORADB = ThisWorkbook.Worksheets("Main").Range("B3").Value
+''   UserID = ThisWorkbook.Worksheets("Main").Range("B4").Value
+''   Password = ThisWorkbook.Worksheets("Main").Range("B5").Value
+''     Set LogBook = ThisWorkbook
+''   LogBookCounter = 2
+' CurrDataDate = "27-Nov-2020"
+'
+    cn.Open "Provider=OraOLEDB.Oracle" & _
+    ";Data Source=" & ORADB & _
+    ";User ID=" & UserID & _
+    ";Password=" & Password
+    
+'
+'      cn.Open ( _
+'        "User ID=" & "VALUEATRMF" & _
+'       ";Password=" & "pass#1234" & _
+'       ";Data Source=" & "Valuefy_PROD_DB" & _
+'       ";Provider=OraOLEDB.Oracle.1")
+'
+    'cn.Open ( _
+        "User ID=" & "valueat" & _
+       ";Password=" & "Valuefyjan2016" & _
+       ";Data Source=" & Valuefy_PROD_DB & _
+       ";Provider=MSDAORA.1")
+    
+    If cn.State <> 1 Then
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in Creating Holding file... Problem in DataBase connectivity...!!!"
+        LogBookCounter = LogBookCounter + 1
+        MacroError = 1
+        ErrFlag = 1
+        LogBook.Save
+        Exit Sub
+    End If
+    
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Fetching data for Daily Holdings file"
+    LogBookCounter = LogBookCounter + 1
+    
+    'SQL = "select * From daily_process_stats"
+    'SQL = "select * from daily_process_stats where process_name='Sameer'"
+    'Cmd1.ActiveConnection = cn
+    
+    'Cmd1.CommandText = SQL
+    
+    Set Cmd1 = New ADODB.Command
+    Cmd1.ActiveConnection = cn
+     
+    Cmd1.CommandText = "SP_FE_HOLDINGSDOWNLOAD_REL"
+    Cmd1.CommandType = adCmdStoredProc
+     
+    Set Parameter1 = Cmd1.CreateParameter("RUN_DATE", adDate, adParamInput)
+    Parameter1.Value = Format(CurrDataDate, "DD-MMM-YY")
+    
+    Cmd1.Parameters.Append Parameter1
+     
+    Set rs = New ADODB.Recordset
+    'rs.Open Cmd1
+    Set rs = Cmd1.Execute
+    
+    If Not rs.EOF Then
+    
+        Workbooks.Open ThisWorkbook.Worksheets("Main").Range("B13").Value
+        Set HoldCompBook = ActiveWorkbook
+        HoldingFileName = "Holdings_" & Format(CurrDataDate, "DD-MMM-YY") & ".xls"
+        HoldCompBook.SaveAs ThisWorkbook.Worksheets("Main").Range("B14").Value & HoldingFileName, , , , , , , True
+        HoldCompSheetName = "Holdings"
+        
+        HoldCompBook.Worksheets(HoldCompSheetName).Range("B3").Value = Format(CurrDataDate, "DD-MMM-YY")
+        
+        OpRowCounter = 5
+        
+        HoldCompBook.Worksheets(HoldCompSheetName).Cells(6, 1).CopyFromRecordset rs
+        
+        HoldCompBook.Save
+        HoldCompBook.Close True
+        
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "File created"
+        LogBookCounter = LogBookCounter + 1
+    
+    Else
+    
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "No data found for Daily Holdings file. Some possible error."
+        LogBookCounter = LogBookCounter + 1
+        ErrFlag = 1
+        LogBook.Save
+        DataReady = 0
+        Status = "No data found for creating Holding. Some possible error."
+        
+    End If
+        
+    cn.Close
+    Set cn = Nothing
+    Set rs = Nothing
+    
+Exit Sub
+    
+ErrCreateHoldingFile:
+
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in Creating Daily Holding File"
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = Err.Description
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Save
+    DataReady = 0
+    Status = "Macro Error: Error in Creating Daily Holding File"
+    
+End Sub
+
+Sub SendHoldingsFileMail()
+
+On Error GoTo ErrSendHoldingsFileMail
+
+Dim iConf As New CDO.Configuration
+Dim Flds  As ADODB.Fields
+Dim CCIds As String
+Dim Emailbody As String
+
+
+Toreceiver = ThisWorkbook.Worksheets("Send_Mail").Range("B3").Value
+Ccreceiver = ThisWorkbook.Worksheets("Send_Mail").Range("C3").Value
+Bccreceiver = ThisWorkbook.Worksheets("Send_Mail").Range("D3").Value
+
+Set Flds = iConf.Fields
+
+  '' below 7 lines are for testing only uncomment during live
+''    ORADB = ThisWorkbook.Worksheets("Main").Range("B3").Value
+''  UserID = ThisWorkbook.Worksheets("Main").Range("B4").Value
+''   Password = ThisWorkbook.Worksheets("Main").Range("B5").Value
+'' Set LogBook = ThisWorkbook
+''  LogBookCounter = 2
+''    CurrDataDate = "01-feb-2019"
+''  HoldingFileName = "Holdings_01-Feb-19.xls"
+
+LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Emailing Daily Holdings file. File: " & HoldingFileName
+LogBookCounter = LogBookCounter + 1
+' Set the configuration
+
+iConf.Load -1  ' CDO Source Defaults
+
+With Flds
+.Item(cdoSendUsingMethod) = 2
+.Item(CDO.cdoSMTPServerPort) = 25
+.Item(cdoSMTPServer) = "10.199.15.24"
+.Item(CDO.cdoSMTPAuthenticate) = 0
+.Item(cdoSMTPConnectionTimeout) = 10
+.Update
+End With
+
+LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Emailing Headers set."
+LogBookCounter = LogBookCounter + 1
+LogBook.Save
+
+Dim iMsg As New CDO.Message
+Set iMsg.Configuration = iConf
+    
+'UNCOMMENT AFTER ADDING EMAIL IDS
+'CCIds = GetEmailIDs()
+Emailbody = "Production - Attached Portfolio Holdings file for " & Format(CurrDataDate, "DD-MMM-YY")
+    
+' go on to use Message object
+With iMsg
+  .To = Toreceiver
+  .CC = Ccreceiver
+  .BCC = Bccreceiver
+  .From = "Attribution@Production <rcam.valueat@nipponindiamf.com>"
+  .subject = "UPGARDE:: Portfolio Holdings File"
+  .TextBody = Emailbody
+  .AddAttachment ThisWorkbook.Worksheets("Main").Range("B14").Value & HoldingFileName
+  .Send
+End With
+
+LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Emailed Holdings file."
+LogBookCounter = LogBookCounter + 1
+LogBook.Save
+
+Exit Sub
+
+ErrSendHoldingsFileMail:
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in SendHoldingFileEMail"
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Save
+    DataReady = 0
+    Status = "Macro Error: Error in SendHoldingFileEMail"
+End Sub
+
+Sub FindCurrDate()
+
+On Error GoTo ErrFindDate
+
+Dim OpBookPath As String
+Dim LastLoadStatus As Integer
+Dim LastLoadBook As Workbook
+Dim WorkDate As Date
+Dim WorkDD As String
+Dim WorkMM As String
+Dim WorkYY As String
+
+LastLoadStatus = 0
+
+'process to find current data date
+LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Finding date for which data to load for " & CurrSeg
+LogBookCounter = LogBookCounter + 1
+
+'find prevload date from database
+Dim PrevLoadDayFound As Integer
+PrevLoadDayFound = 0
+ErrFlag = 0
+PrevLoadDayFound = FindPrevLoadDay()
+
+
+If PrevLoadDayFound = 0 Or ErrFlag = 1 Then
+    'log already written in database
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Prev Load Date not found. Aborting Process...!!!"
+    LogBookCounter = LogBookCounter + 1
+    Exit Sub
+End If
+
+Dim DayPassed As Integer
+Dim NSEDataFound As Integer
+Dim NSEIndexFilePath As String
+Dim NSEIndexFileName As String
+Dim DownloadInd As Long
+Dim BusinessDayFound As Integer
+
+DayPassed = 1
+NSEDataFound = 0
+DownloadInd = 1
+
+'fund currdata date from database
+BusinessDayFound = 0
+BusinessDayFound = FindNextBusinessDay()
+
+If ErrFlag = 1 Then
+'    LastLoadBook.Close False
+    Exit Sub
+End If
+
+If BusinessDayFound = 1 Then
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = CurrSeg & " Business Date found for " & Application.Text(CurrDataDate, "DD-MMM-YY") & ". Data upload & Attribution to be done for this date."
+    LogBookCounter = LogBookCounter + 1
+Else
+    'ErrFlag = 1
+    'log already written in Find BusinessDay function
+End If
+
+Exit Sub
+
+ErrFindDate:
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in Find Current Data Date"
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    DataReady = 0
+    Status = "DRIVER: Macro Error: Error in Find Current Data Date"
+End Sub
+
+Function CheckPreviousRunDB() As Integer
+
+On Error GoTo ErrCheckPreviousRunDB
+    Dim objSession As Object
+    Dim objDatabase As Object
+    Dim SQL As String
+    Dim ORADynaSet As Object
+    Dim x As Integer
+    Dim y As Integer
+    
+    CheckPreviousRunDB = 2
+
+    Set objSession = CreateObject("OracleInProcServer.XOraSession")
+    Set objDatabase = objSession.OpenDatabase(ORADB, UserID & "/" & Password, 0)
+    
+    Dim CountFail As Integer
+    SQL = "Select Count(*) from Daily_Process_Stats where Status is not null and upper(Process_Name) <> 'DAILY ATTRIB'"
+    Set ORADynaSet = objDatabase.DBCreateDynaset(SQL, 0)
+
+    If ORADynaSet.RecordCount > 0 Then
+        
+        ORADynaSet.MoveFirst
+
+        For y = 0 To ORADynaSet.RecordCount - 1
+            For x = 0 To ORADynaSet.Fields.Count - 1
+                CountFail = ORADynaSet.Fields(x).Value
+            Next
+            ORADynaSet.MoveNext
+        Next
+        If CountFail = 0 Then
+            CheckPreviousRunDB = 1
+        Else
+            CheckPreviousRunDB = 0
+        End If
+    Else
+        CheckPreviousRunDB = 0
+    End If
+
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+    
+Exit Function
+    
+ErrCheckPreviousRunDB:
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+    CheckPreviousRunDB = 0
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in Check Previous Run in Database"
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Save
+    DataReady = 0
+    Status = "Macro Error: Error in Check Previous Run in Database"
+    
+End Function
+
+Sub CloseSaveOtherWorkBooks()
+'Resume next since if file is already closed this doesnt throw error
+On Error Resume Next
+    LogBook.Close True
+End Sub
+
+Function FileExists(FileName As String) As Boolean
+On Error GoTo ErrFileExists
+    FileExists = (Dir(FileName) > "")
+
+Exit Function
+ErrFileExists:
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in Check FileExists Function"
+    LogBookCounter = LogBookCounter + 1
+    
+    ErrFlag = 1
+    MacroError = 1
+    DataReady = 0
+    Status = "Macro Error: Error in Check FileExists Function"
+    
+End Function
+
+Function FindNextBusinessDay() As Integer
+
+On Error GoTo ErrFindNextBusinessDay
+
+    Dim objSession As Object
+    Dim objDatabase As Object
+    Dim ORADynaSet As Object
+    Dim x As Integer
+    Dim y As Integer
+    Dim SQL As String
+    Dim DomMaxLoadDate As Date
+    Dim AdvMaxLoadDate As Date
+    Dim cn As ADODB.Connection
+    Dim rs As ADODB.Recordset
+    
+    Set cn = New ADODB.Connection
+    Set rs = New ADODB.Recordset
+    
+    cn.Open "Provider=OraOLEDB.Oracle" & _
+    ";Data Source=" & ORADB & _
+    ";User ID=" & UserID & _
+    ";Password=" & Password
+       
+    FindNextBusinessDay = 0
+    SQL = "Select min(Effective_Date) " & _
+      "from Business_Calendar " & _
+      "where BusinessDay_Flag = 1 AND Effective_Date > TO_DATE('" & Application.Text(PrevLoadDate, "YYYY-MM-DD") & "', 'YYYY-MM-DD') " & _
+      "and DataLoad_Status = 0"
+    rs.Open SQL, cn
+        If IsDate(rs.Fields(0).Value) Then
+            CurrDataDate = rs.Fields(0).Value
+            FindNextBusinessDay = 1
+       
+       
+''''    FindNextBusinessDay = 0
+''''    ' Use OO4O
+''''    Set objSession = CreateObject("OracleInProcServer.XOraSession")
+''''    Set objDatabase = objSession.OpenDatabase(ORADB, UserID & "/" & Password, 0)
+''''
+''''    If CurrSeg = "DOM" Then
+''''
+''''        'festic loading is at max equal to OFFSHORE
+''''        'since domestic is now dependend on offshore find maxloaddate for ADV
+''''        CurrSeg = "ADV"
+''''        Call FindPrevLoadDay
+''''        AdvMaxLoadDate = PrevLoadDate
+        
+        'reload ADV PrevLoadDate
+        CurrSeg = "DOM"
+        Call FindPrevLoadDay
+        'The bew query is comented because it only required in AxisMF Scenario for others not dependend on offshore process
+        'SQL = "Select min(Effective_Date) from Business_Calendar where BusinessDay_Flag = 1 and Effective_Date > '" & Format(PrevLoadDate, "DD-MMM-YY") & "' AND Effective_Date <= '" & Format(AdvMaxLoadDate, "DD-MMM-YY") & "' and DataLoad_Status <> 1"
+        'SQL = "Select min(Effective_Date) from Business_Calendar where BusinessDay_Flag = 1 and Effective_Date > '" & Application.Text(PrevLoadDate, "DD-MMM-YY") & "' AND Effective_Date < '" & Application.Text(VBA.Date, "DD-MMM-YY") & "' and DataLoad_Status <> 1"
+    End If
+
+    'LOGIC SAME FOR PMS AND ADV AS THEY FOLLOW DOMESTIC
+    If CurrSeg = "ADV" Then
+        
+        'Offshore loading is at max equal to Domestic
+        'find maxloaddate for DOM
+        CurrSeg = "DOM"
+        Call FindPrevLoadDay
+        DomMaxLoadDate = PrevLoadDate
+        
+        'reload DOM PrevLoadDate
+        CurrSeg = "ADV"
+        Call FindPrevLoadDay
+        SQL = "Select min(Effective_Date) from Business_Calendar where BusinessDay_Flag = 1 and Effective_Date > '" & Application.Text(PrevLoadDate, "DD-MMM-YY") & "' AND Effective_Date <= '" & Application.Text(DomMaxLoadDate, "DD-MMM-YY") & "' and NVL(Offshore_DataLoad_Status,0) <> 1"
+    
+    End If
+
+    If CurrSeg = "PMS" Then
+        
+        'Offshore loading is at max equal to Domestic
+        'find maxloaddate for DOM
+        CurrSeg = "DOM"
+        Call FindPrevLoadDay
+        DomMaxLoadDate = PrevLoadDate
+        
+        'reload PMS PrevLoadDate
+        CurrSeg = "PMS"
+        Call FindPrevLoadDay
+        'CHECK PMS QUERY
+        'Checked query returned null
+        SQL = "Select min(Effective_Date) from Business_Calendar where BusinessDay_Flag = 1 and Effective_Date > '" & Application.Text(PrevLoadDate, "DD-MMM-YY") & "' AND Effective_Date <= '" & Application.Text(DomMaxLoadDate, "DD-MMM-YY") & "' and NVL(PMS_DataLoad_Status,0) <> 1"
+    
+    End If
+
+    'Set ORADynaSet = objDatabase.DBCreateDynaset(SQL, 0)
+    Set rs = New ADODB.Recordset
+    SQL = "Select min(Effective_Date) " & _
+      "from Business_Calendar " & _
+      "where BusinessDay_Flag = 1 AND Effective_Date > TO_DATE('" & Application.Text(PrevLoadDate, "YYYY-MM-DD") & "', 'YYYY-MM-DD') " & _
+      "and DataLoad_Status = 0"
+    rs.Open SQL, cn
+
+    'If ORADynaSet.RecordCount > 0 Then
+        
+    If Not rs.EOF Then
+        rs.MoveFirst
+        If IsDate(rs.Fields(0).Value) Then
+        CurrDataDate = rs.Fields(0).Value
+        FindNextBusinessDay = 1
+            Else
+                LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "No Business Day found after " & Application.Text(PrevLoadDate, "DD-MMM-YY") & " and before " & Application.Text(VBA.Date - 1, "DD-MMM-YY") & ". No data upload for non-business days."
+                LogBookCounter = LogBookCounter + 1
+        End If
+    Else
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "No Business Day found after " & Application.Text(PrevLoadDate, "DD-MMM-YY") & " and before " & Application.Text(VBA.Date - 1, "DD-MMM-YY") & ". No data upload for non-business days."
+        LogBookCounter = LogBookCounter + 1
+    End If
+
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+
+Exit Function
+
+ErrFindNextBusinessDay:
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in FindNextBusinessDay"
+    LogBookCounter = LogBookCounter + 1
+    LogBook.Save
+    DataReady = 0
+    Status = "DRIVER: Macro Error: Error in FindNextBusinessDay from database"
+    
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+
+End Function
+
+Function FindPrevLoadDay() As Integer
+
+On Error GoTo ErrFindPrevLoadDay
+
+    Dim objSession As Object
+    Dim objDatabase As Object
+    Dim ORADynaSet As Object
+    Dim x As Integer
+    Dim y As Integer
+    Dim SQL As String
+    Dim cn As ADODB.Connection
+    Dim rs As ADODB.Recordset
+    Set cn = New ADODB.Connection
+    Set rs = New ADODB.Recordset
+    
+    cn.Open "Provider=OraOLEDB.Oracle" & _
+    ";Data Source=" & ORADB & _
+    ";User ID=" & UserID & _
+    ";Password=" & Password
+       
+    FindPrevLoadDay = 0
+    SQL = "SELECT MAX(Effective_Date) FROM Business_Calendar " & _
+        "WHERE BusinessDay_Flag = 1 AND Effective_Date < TO_DATE('" & Application.Text(VBA.Date, "YYYY-MM-DD") & "', 'YYYY-MM-DD') " & _
+        "AND DataLoad_Status = 1"
+    rs.Open SQL, cn
+        If IsDate(rs.Fields(0).Value) Then
+            PrevLoadDate = rs.Fields(0).Value
+            FindPrevLoadDay = 1
+    ' Use OO4O
+''''    Set objSession = CreateObject("OracleInProcServer.XOraSession")
+''''    Set objDatabase = objSession.OpenDatabase(ORADB, UserID & "/" & Password, 0)
+''''
+''''    If CurrSeg = "DOM" Then
+''''        SQL = "Select max(Effective_Date) from Business_Calendar where BusinessDay_Flag = 1 AND Effective_Date < '" & Application.Text(VBA.Date, "DD-MMM-YY") & "' and DataLoad_Status = 1"
+''''    End If
+    
+    If CurrSeg = "ADV" Then
+        SQL = "Select max(Effective_Date) from Business_Calendar where BusinessDay_Flag = 1 AND Effective_Date < '" & Application.Text(VBA.Date, "DD-MMM-YY") & "' and Offshore_DataLoad_Status = 1"
+    End If
+    
+    If CurrSeg = "PMS" Then
+        SQL = "Select max(Effective_Date) from Business_Calendar where BusinessDay_Flag = 1 AND Effective_Date < '" & Application.Text(VBA.Date, "DD-MMM-YY") & "' and PMS_DataLoad_Status = 1"
+    End If
+    
+''''    Set ORADynaSet = objDatabase.DBCreateDynaset(SQL, 0)
+''''
+''''    If ORADynaSet.RecordCount > 0 Then
+''''
+''''        ORADynaSet.MoveFirst
+''''        If IsDate(ORADynaSet.Fields(0).Value) Then
+''''            PrevLoadDate = ORADynaSet.Fields(0).Value
+''''            FindPrevLoadDay = 1
+''''        Else
+''''            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Prev Load Date not found."
+''''            LogBookCounter = LogBookCounter + 1
+''''            ErrFlag = 1
+''''            LogBook.Save
+''''            DataReady = 0
+''''            Status = "Prev Load Date not found."
+''''        End If
+    Else
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Prev Load Date not found."
+        LogBookCounter = LogBookCounter + 1
+        ErrFlag = 1
+        LogBook.Save
+        DataReady = 0
+        Status = "Prev Load Date not found."
+    End If
+
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+
+Exit Function
+
+ErrFindPrevLoadDay:
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in FindPrevLoadDay"
+    LogBookCounter = LogBookCounter + 1
+    LogBook.Save
+    DataReady = 0
+    Status = "DRIVER: Macro Error: Error in FindPrevLoadDay from database"
+    
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+
+End Function
+
+Sub MakeStatusTableOK()
+
+On Error GoTo ErrMakeStatusTableOK
+
+Dim cn As ADODB.Connection
+Dim rs As ADODB.Recordset
+Dim Cmd1 As New ADODB.Command
+Set cn = New ADODB.Connection
+Set rs = New ADODB.Recordset
+
+Dim SQL As String
+   
+'cn.Open ("Provider=MSDASQL;Data Source= " & ORADB & ";Persist Security Info=True;User ID=" & UserID & ";Password=" & Password)
+
+cn.Open "Provider=OraOLEDB.Oracle" & _
+    ";Data Source=" & ORADB & _
+    ";User ID=" & UserID & _
+    ";Password=" & Password
+
+If cn.State <> 1 Then
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in MakeStatusTableOK... Problem in DataBase connectivity...!!!"
+    LogBookCounter = LogBookCounter + 1
+    MacroError = 1
+    ErrFlag = 1
+    LogBook.Save
+    Exit Sub
+End If
+
+SQL = "UPDATE DAILY_PROCESS_STATS SET STATUS=NULL, DATAREADY=1"
+
+Cmd1.ActiveConnection = cn
+
+Cmd1.CommandText = SQL
+rs.Open Cmd1
+    
+cn.Close
+
+Set cn = Nothing
+Set rs = Nothing
+
+Exit Sub
+
+ErrMakeStatusTableOK:
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in MakeStatusTableOK" & Err.Description
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    DataReady = 0
+    Status = "Driver Macro Error: Error in Making Status Table OK"
+
+End Sub
+
+Sub UpdateBusinessCalendar()
+On Error GoTo ErrUpdateBusinessCalendar
+
+Dim cn As ADODB.Connection
+Dim rs As ADODB.Recordset
+Dim Cmd1 As New ADODB.Command
+Set cn = New ADODB.Connection
+Set rs = New ADODB.Recordset
+   
+Dim SQL As String
+
+cn.Open "Provider=OraOLEDB.Oracle" & _
+    ";Data Source=" & ORADB & _
+    ";User ID=" & UserID & _
+    ";Password=" & Password
+
+If cn.State <> 1 Then
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in Run UpdateBusinessCalendar... Problem in DataBase connectivity...during updation for " & CurrSeg
+    LogBookCounter = LogBookCounter + 1
+    MacroError = 1
+    ErrFlag = 1
+    LogBook.Save
+    Exit Sub
+End If
+
+If CurrSeg = "DOM" Then
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Updating Business Calendar for Domestic for " & Application.Text(CurrDataDate, "DD-MMM-YY")
+    LogBookCounter = LogBookCounter + 1
+
+    SQL = "UPDATE business_calendar SET DATALOAD_STATUS=1 WHERE EFFECTIVE_DATE='" & Application.Text(CurrDataDate, "DD-MMM-YY") & "'"
+End If
+
+If CurrSeg = "ADV" Then
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Updating Business Calendar for Offshore for " & Application.Text(CurrDataDate, "DD-MMM-YY")
+    LogBookCounter = LogBookCounter + 1
+    
+    SQL = "UPDATE business_calendar SET OFFSHORE_DATALOAD_STATUS=1 WHERE EFFECTIVE_DATE='" & Application.Text(CurrDataDate, "DD-MMM-YY") & "'"
+End If
+
+If CurrSeg = "PMS" Then
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Updating Business Calendar for PMS for " & Application.Text(CurrDataDate, "DD-MMM-YY")
+    LogBookCounter = LogBookCounter + 1
+    
+    SQL = "UPDATE business_calendar SET PMS_DATALOAD_STATUS=1 WHERE EFFECTIVE_DATE='" & Application.Text(CurrDataDate, "DD-MMM-YY") & "'"
+End If
+
+Cmd1.ActiveConnection = cn
+
+Cmd1.CommandText = SQL
+rs.Open Cmd1
+    
+cn.Close
+
+Set cn = Nothing
+Set rs = Nothing
+
+Exit Sub
+
+ErrUpdateBusinessCalendar:
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in UpdateBusinessCalendar"
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    DataReady = 0
+    Status = "DRIVER: Macro Error: Error in UpdateBusinessCalendar"
+
+End Sub
+
+Sub DomesticAttribution()
+
+On Error GoTo ErrDomesticAttribution
+
+Dim AllDatesErrEnc As Integer
+Dim ErrinStep As Integer
+Dim DOMMacroBook As Workbook
+
+ErrinStep = 0
+AllDatesErrEnc = 0
+CurrSeg = "DOM"
+Status = ""
+
+'Loop till all dates exhausted or errorencountered
+Do Until AllDatesErrEnc = 1
+    
+    'Find Date for dataload, if no date exit
+    CurrDataDate = 0
+    PrevLoadDate = 0
+    RunProcedure = ""
+    CurrSubProc = ""
+    
+    Call FindCurrDate
+    
+    'if Date found
+    If CurrDataDate > 0 Then
+
+        'Run DOM MACRO & Check Status
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Data Collation for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+        LogBookCounter = LogBookCounter + 1
+
+        DOMMacroFilePath = ThisWorkbook.Worksheets("Main").Range("B10").Value
+        Workbooks.Open DOMMacroFilePath
+        Set DOMMacroBook = ActiveWorkbook
+
+        Application.Run "'" & DOMMacroBook.Name & "'!Main"
+
+        DOMMacroBook.Close False
+
+        CurrSubProc = "SRC DATA COLLATION"
+        ErrinStep = 0
+        ErrinStep = StatusCheck()
+
+        If ErrinStep = 1 And ErrFlag = 0 Then
+            'RUN DOM DATA LANDING & check status
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Data Landing for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+            LogBookCounter = LogBookCounter + 1
+           
+            CurrSubProc = "ETL STAGE 1"
+            ErrinStep = 0
+
+            'run Data Landing - FUT_OPTSMASTER
+            RunProcedure = "SP_LDG_FUT_OPTSMASTER_XLS"
+            Call RunProc
+            ErrinStep = StatusCheck()
+
+            If ErrinStep = 1 And ErrFlag = 0 Then
+                'run Data Landing - CORPACTEXC
+                RunProcedure = "SP_LDG_CORPACTEXC_XLS"
+                Call RunProc
+                ErrinStep = StatusCheck()
+            Else
+                AllDatesErrEnc = 1
+                ErrFlag = 1
+                Exit Sub
+            End If
+
+            If ErrinStep = 1 And ErrFlag = 0 Then
+                'run Data Landing - CORPACTIONS
+                RunProcedure = "SP_LDG_CORPACTIONS_XLS"
+                Call RunProc
+                ErrinStep = StatusCheck()
+            Else
+                AllDatesErrEnc = 1
+                ErrFlag = 1
+                Exit Sub
+            End If
+
+            If ErrinStep = 1 And ErrFlag = 0 Then
+                'run Data Landing - DAILY_EOD_PRICES
+                RunProcedure = "SP_LDG_DAILY_EOD_PRICES_XLS"
+                Call RunProc
+                ErrinStep = StatusCheck()
+            Else
+                AllDatesErrEnc = 1
+                ErrFlag = 1
+                Exit Sub
+            End If
+           
+        Else
+            AllDatesErrEnc = 1
+            ErrFlag = 1
+        End If
+
+       If ErrinStep = 1 And ErrFlag = 0 Then
+            'RUN DOM DATA TRANSFORMATIONS & check status
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Data Transformation for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+            LogBookCounter = LogBookCounter + 1
+
+            CurrSubProc = "ETL STAGE 2"
+            ErrinStep = 0
+            'run Data Transformation
+            RunProcedure = "SP_TRANSFORM_MAIN"
+            Call RunProc
+            ErrinStep = StatusCheck()
+
+        Else
+            AllDatesErrEnc = 1
+            ErrFlag = 1
+        End If
+
+        If ErrinStep = 1 And ErrFlag = 0 Then
+            'RUN DOM ATTRIBUTION & check status
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Attribution for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+            LogBookCounter = LogBookCounter + 1
+
+            CurrSubProc = "DAILY ATTRIB"
+            ErrinStep = 0
+            'run Attribution
+            RunProcedure = "SP_VALAT_DRIVER"
+            Call RunProc
+            ErrinStep = StatusCheck()
+
+            If ErrinStep = 1 And ErrFlag = 0 Then
+            
+                'Hold values for Offshore file procesing and email when last date encountered
+                'This would be used for date else CurrDataDate will be 0
+                LastRunCurrDate = CurrDataDate
+                DayRunCount = DayRunCount + 1
+            
+                Call UpdateBusinessCalendar
+            Else
+                AllDatesErrEnc = 1
+                ErrFlag = 1
+                'see if rollback required
+            End If
+        
+        Else
+            AllDatesErrEnc = 1
+            ErrFlag = 1
+        End If
+        
+    Else
+        'Dates exhausted
+        AllDatesErrEnc = 1
+    End If
+
+Loop
+
+
+Exit Sub
+
+ErrDomesticAttribution:
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in Domestic Attribution"
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    DataReady = 0
+    Status = "DRIVER: Macro Error: Error in Domestic Attribution"
+
+End Sub
+
+Sub AdvisoryAttribution()
+
+On Error GoTo ErrAdvisoryAttribution
+
+Dim AllDatesErrEnc As Integer
+Dim ErrinStep As Integer
+Dim ADVMacroBook As Workbook
+
+ErrinStep = 0
+AllDatesErrEnc = 0
+CurrSeg = "ADV"
+Status = ""
+
+'Loop till all dates exhausted or errorencountered
+Do Until AllDatesErrEnc = 1
+    
+    'Find Date for dataload, if no date exit
+    CurrDataDate = 0
+    PrevLoadDate = 0
+    RunProcedure = ""
+    CurrSubProc = ""
+    
+    Call FindCurrDate
+    
+    'if Date found
+    If CurrDataDate > 0 Then
+        'Run ADV MACRO & Check Status
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Data Collation for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+        LogBookCounter = LogBookCounter + 1
+
+        ADVMacroFilePath = ThisWorkbook.Worksheets("Main").Range("B11").Value
+        
+        Workbooks.Open ADVMacroFilePath
+        Set ADVMacroBook = ActiveWorkbook
+        
+        Application.Run "'" & ADVMacroBook.Name & "'!Main"
+        
+        ADVMacroBook.Close False
+
+        CurrSubProc = "SRC DATA COLLATION OFFSHORE"
+        ErrinStep = 0
+        ErrinStep = StatusCheck()
+        
+        If ErrinStep = 1 And ErrFlag = 0 Then
+            'RUN ADV DATA LANDING & check status
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Data Landing for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+            LogBookCounter = LogBookCounter + 1
+            
+            CurrSubProc = "ETL STAGE 1 OFFSHORE"
+            ErrinStep = 0
+            'run Data Landing
+            RunProcedure = "SP_LANDING_MAIN_O"
+            Call RunProc
+            ErrinStep = StatusCheck()
+        
+        Else
+            AllDatesErrEnc = 1
+            ErrFlag = 1
+        End If
+        
+        If ErrinStep = 1 And ErrFlag = 0 Then
+            'RUN ADV DATA TRANSFORMATIONS & check status
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Data Transformation for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+            LogBookCounter = LogBookCounter + 1
+            
+            CurrSubProc = "ETL STAGE 2 OFFSHORE"
+            ErrinStep = 0
+            'run Data Transformation
+            RunProcedure = "SP_TRANSFORM_MAIN_O"
+            Call RunProc
+            ErrinStep = StatusCheck()
+       
+        Else
+            AllDatesErrEnc = 1
+            ErrFlag = 1
+        End If
+        
+        If ErrinStep = 1 And ErrFlag = 0 Then
+            'RUN ADV ATTRIBUTION & check status
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Attribution for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+            LogBookCounter = LogBookCounter + 1
+            
+            CurrSubProc = "DAILY ATTRIB"
+            ErrinStep = 0
+            'run Attribution
+            
+            RunProcedure = "SP_VALAT_DRIVER_O"
+            Call RunProc
+            ErrinStep = StatusCheck()
+            
+            If ErrinStep = 1 And ErrFlag = 0 Then
+                Call UpdateBusinessCalendar
+            Else
+                AllDatesErrEnc = 1
+                ErrFlag = 1
+                'see if rollback required
+            End If
+        
+        Else
+            AllDatesErrEnc = 1
+            ErrFlag = 1
+        End If
+        
+    Else
+        'Dates exhausted
+        AllDatesErrEnc = 1
+    End If
+
+Loop
+
+
+Exit Sub
+
+ErrAdvisoryAttribution:
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in Advisory Attribution"
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    DataReady = 0
+    Status = "DRIVER: Macro Error: Error in Advisory Attribution"
+
+End Sub
+
+Sub PMSAttribution()
+
+On Error GoTo ErrPMSAttribution
+
+Dim AllDatesErrEnc As Integer
+Dim ErrinStep As Integer
+Dim PMSMacroBook As Workbook
+
+ErrinStep = 0
+AllDatesErrEnc = 0
+CurrSeg = "PMS"
+Status = ""
+
+'Loop till all dates exhausted or errorencountered
+Do Until AllDatesErrEnc = 1
+    
+    'Find Date for dataload, if no date exit
+    CurrDataDate = 0
+    PrevLoadDate = 0
+    RunProcedure = ""
+    CurrSubProc = ""
+    
+    Call FindCurrDate
+    
+    'if Date found
+    If CurrDataDate > 0 Then
+        'Run ADV MACRO & Check Status
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Data Collation for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+        LogBookCounter = LogBookCounter + 1
+
+        PMSMacroFilePath = ThisWorkbook.Worksheets("Main").Range("B13").Value
+        
+        Workbooks.Open PMSMacroFilePath
+        Set PMSMacroBook = ActiveWorkbook
+        
+        Application.Run "'" & PMSMacroBook.Name & "'!Main"
+        PMSMacroBook.Close False
+        
+        'Update
+        CurrSubProc = "SRC DATA COLLATION PMS"
+        ErrinStep = 0
+        ErrinStep = StatusCheck()
+        
+        If ErrinStep = 1 And ErrFlag = 0 Then
+            'RUN ADV DATA LANDING & check status
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Data Landing for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+            LogBookCounter = LogBookCounter + 1
+            
+            CurrSubProc = "ETL STAGE 1 PMS"
+            ErrinStep = 0
+            'run Data Landing
+            RunProcedure = "SP_LANDING_MAIN_P"
+            Call RunProc
+            ErrinStep = StatusCheck()
+        
+        Else
+            AllDatesErrEnc = 1
+            ErrFlag = 1
+        End If
+        
+        If ErrinStep = 1 And ErrFlag = 0 Then
+            'RUN ADV DATA TRANSFORMATIONS & check status
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Data Transformation for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+            LogBookCounter = LogBookCounter + 1
+            
+            CurrSubProc = "ETL STAGE 2 PMS"
+            ErrinStep = 0
+            'run Data Transformation
+            RunProcedure = "SP_TRANSFORM_MAIN_P"
+            Call RunProc
+            ErrinStep = StatusCheck()
+       
+        Else
+            AllDatesErrEnc = 1
+            ErrFlag = 1
+        End If
+        
+        'DON'T RUN WHILE TESTING PMS
+        If ErrinStep = 1 And ErrFlag = 0 Then
+            'RUN ADV ATTRIBUTION & check status
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Going to Run Attribution for : " & Application.Text(CurrDataDate, "DD-MMM-YY") & " - " & CurrSeg
+            LogBookCounter = LogBookCounter + 1
+            
+            CurrSubProc = "DAILY ATTRIB"
+            ErrinStep = 0
+            'run Attribution
+            
+            RunProcedure = "SP_VALAT_DRIVER_P"
+            Call RunProc
+            ErrinStep = StatusCheck()
+            
+            If ErrinStep = 1 And ErrFlag = 0 Then
+                Call UpdateBusinessCalendar
+            Else
+                AllDatesErrEnc = 1
+                ErrFlag = 1
+                'see if rollback required
+            End If
+        
+        Else
+            AllDatesErrEnc = 1
+            ErrFlag = 1
+        End If
+        
+    Else
+        'Dates exhausted
+        AllDatesErrEnc = 1
+    End If
+
+Loop
+
+
+Exit Sub
+
+ErrPMSAttribution:
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in PMS Attribution"
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    DataReady = 0
+    Status = "DRIVER: Macro Error: Error in PMS Attribution"
+
+End Sub
+
+Function StatusCheck() As Integer
+
+On Error GoTo ErrStatusCheck
+
+    Dim objSession As Object
+    Dim objDatabase As Object
+    Dim ORADynaSet As Object
+    Dim x As Integer
+    Dim y As Integer
+    Dim SQL As String
+    Dim DBStatus As String
+    Dim cn As ADODB.Connection
+    Dim rs As ADODB.Recordset
+    
+    Set cn = New ADODB.Connection
+    Set rs = New ADODB.Recordset
+       
+    StatusCheck = 0
+    
+    cn.Open "Provider=OraOLEDB.Oracle" & _
+    ";Data Source=" & ORADB & _
+    ";User ID=" & UserID & _
+    ";Password=" & Password
+    
+    SQL = "Select count(STATUS) from daily_process_stats where status is not null and process_name ='" & CurrSubProc & "'"
+    rs.Open SQL, cn
+'''
+'''    StatusCheck = 0
+'''    ' Use OO4O
+'''    Set objSession = CreateObject("OracleInProcServer.XOraSession")
+'''    Set objDatabase = objSession.OpenDatabase(ORADB, UserID & "/" & Password, 0)
+    
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Checking Status for " & CurrSubProc & " ."
+    LogBookCounter = LogBookCounter + 1
+    
+    If rs.Fields(0).Value > 0 Then
+           rs.MoveFirst
+           ReLoadDate = rs.Fields(0).Value
+           
+    
+'''
+'''    Set ORADynaSet = objDatabase.DBCreateDynaset(SQL, 0)
+
+'''    If ORADynaSet.RecordCount > 0 Then
+'''
+'''        ORADynaSet.MoveFirst
+'''        DBStatus = ORADynaSet.Fields(0).Value
+
+        StatusCheck = 0
+        
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = Application.Text(CurrDataDate, "DD-MMM-YYYY") & " - " & CurrSeg & ": " & CurrSubProc & ": UNSUCCESSFULL: " & DBStatus
+        LogBookCounter = LogBookCounter + 1
+        ErrFlag = 1
+        
+        DataReady = 0
+        Status = Application.Text(CurrDataDate, "DD-MMM-YYYY") & " - " & CurrSeg & ": " & CurrSubProc & ": UNSUCCESSFULL: " & DBStatus
+    Else
+        StatusCheck = 1
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = Application.Text(CurrDataDate, "DD-MMM-YYYY") & " - " & CurrSeg & ": " & CurrSubProc & ": Complete"
+        LogBookCounter = LogBookCounter + 1
+    
+    End If
+
+    LogBook.Save
+    
+    Set rs = Nothing
+    Set cn = Nothing
+
+Exit Function
+
+ErrStatusCheck:
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in StatusCheck"
+    LogBookCounter = LogBookCounter + 1
+    LogBook.Save
+    DataReady = 0
+    Status = "DRIVER: Macro Error: Error in StatusCheck while running - " & Application.Text(CurrDataDate, "DD-MMM-YYYY") & " - " & CurrSeg & ": " & CurrSubProc
+    
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+
+End Function
+
+Sub RunProc()
+
+On Error GoTo ErrRunProc
+
+Dim cn As ADODB.Connection
+Dim rs As ADODB.Recordset
+Dim Cmd1 As New ADODB.Command
+
+ Dim param As Object ' Parameter object
+
+Set cn = New ADODB.Connection
+Set rs = New ADODB.Recordset
+   
+cn.Open "Provider=OraOLEDB.Oracle" & _
+    ";Data Source=" & ORADB & _
+    ";User ID=" & UserID & _
+    ";Password=" & Password
+
+
+If cn.State <> 1 Then
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in RunProc... Problem in DataBase connectivity... while running " & RunProcedure
+    LogBookCounter = LogBookCounter + 1
+    MacroError = 1
+    ErrFlag = 1
+    LogBook.Save
+    Status = "DRIVER: Error in RunProc... Problem in DataBase connectivity... while running " & RunProcedure
+    Exit Sub
+End If
+    
+Cmd1.ActiveConnection = cn
+    
+Cmd1.CommandText = RunProcedure
+
+Cmd1.CommandType = 4 ' adCmdStoredProc
+
+LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Submitting Proc " & RunProcedure & " for execution."
+LogBookCounter = LogBookCounter + 1
+
+'rs.Open Cmd1
+Cmd1.Execute
+    
+LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Executed Proc " & RunProcedure & " ."
+LogBookCounter = LogBookCounter + 1
+    
+'rs.Close
+cn.Close
+    
+Set cn = Nothing
+Set rs = Nothing
+    
+Exit Sub
+    
+ErrRunProc:
+    ErrFlag = 1
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in RunProc while running " & RunProcedure & ":ErrMsg - " & Err.Description
+    LogBookCounter = LogBookCounter + 1
+    LogBook.Save
+    Set cn = Nothing
+    Set rs = Nothing
+    MacroError = 1
+    Status = "DRIVER: Error in RunProc while running " & RunProcedure & ":ErrMsg - " & Err.Description
+End Sub
+
+Sub DeleteReloadData()
+
+On Error GoTo ErrDeleteReloadData
+
+Dim cn As ADODB.Connection
+Dim rs As ADODB.Recordset
+Dim Cmd1 As New ADODB.Command
+
+Set cn = New ADODB.Connection
+Set rs = New ADODB.Recordset
+
+Dim DOMReLoad As Integer
+Dim ADVReLoad As Integer
+Dim PMSReload As Integer
+Dim DOMReLoadDate As Date
+Dim ADVReLoadDate As Date
+Dim PMSReLoadDate As Date
+
+'CHECK RELOAD REQ FOR DOM
+CurrSeg = "DOM"
+   
+ReLoadDate = 0
+DOMReLoad = ReLoadDay()
+DOMReLoadDate = ReLoadDate
+
+CurrSeg = ""
+
+If DOMReLoad = 0 Then
+    Exit Sub
+End If
+   
+cn.Open "Provider=OraOLEDB.Oracle" & _
+";Data Source=" & ORADB & _
+";User ID=" & UserID & _
+";Password=" & Password
+
+If cn.State <> 1 Then
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in DeleteReloadData... Problem in DataBase connectivity... while running " & RunProcedure
+    LogBookCounter = LogBookCounter + 1
+    MacroError = 1
+    ErrFlag = 1
+    LogBook.Save
+    Status = "DRIVER: Error in DeleteReloadData... Problem in DataBase connectivity... while running " & RunProcedure
+    Exit Sub
+End If
+    
+Cmd1.ActiveConnection = cn
+
+'Delete domestic first if reload requested
+If DOMReLoad = 1 Then
+    Cmd1.CommandText = "SP_DELETE_ONEDATE('" & Application.Text(DOMReLoadDate, "DD-MMM-YY") & "', 'ALL')"
+    rs.Open Cmd1
+    Call ModBussCal("DOM", DOMReLoadDate)
+    
+End If
+
+cn.Close
+
+Set cn = Nothing
+Set rs = Nothing
+    
+Exit Sub
+    
+ErrDeleteReloadData:
+    ErrFlag = 1
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in DeleteReloadData while running " & RunProcedure
+    LogBookCounter = LogBookCounter + 1
+    LogBook.Save
+    Set cn = Nothing
+    Set rs = Nothing
+    MacroError = 1
+    Status = "DRIVER: Error in DeleteReloadData while running " & RunProcedure
+End Sub
+
+Sub ModBussCal(Seg As String, FrDate As Date)
+
+On Error GoTo ErrModBussCal
+
+Dim cn As ADODB.Connection
+Dim rs As ADODB.Recordset
+Dim Cmd1 As New ADODB.Command
+
+Set cn = New ADODB.Connection
+Set rs = New ADODB.Recordset
+
+cn.Open "Provider=OraOLEDB.Oracle" & _
+    ";Data Source=" & ORADB & _
+    ";User ID=" & UserID & _
+    ";Password=" & Password
+
+If cn.State <> 1 Then
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in ModBussCal... Problem in DataBase connectivity... while running " & RunProcedure
+    LogBookCounter = LogBookCounter + 1
+    MacroError = 1
+    ErrFlag = 1
+    LogBook.Save
+    Status = "DRIVER: Error in ModBussCal... Problem in DataBase connectivity... while running " & RunProcedure
+    Exit Sub
+End If
+    
+Cmd1.ActiveConnection = cn
+
+'Set Business Cal for DOM
+'Change Query Added PMS columns Sameer
+If Seg = "DOM" Then
+    Cmd1.CommandText = "UPDATE BUSINESS_CALENDAR SET reload_requested=0, dataload_status=0 WHERE effective_date >= '" & Format(FrDate, "DD-MMM-YY") & "'"
+    rs.Open Cmd1
+End If
+
+'Newly Added Sameer
+'Set Business Cal for PMS
+If Seg = "PMS" Then
+    Cmd1.CommandText = "UPDATE BUSINESS_CALENDAR SET pms_reload_requested=0, pms_dataload_status=0 WHERE effective_date >= '" & Format(FrDate, "DD-MMM-YY") & "'"
+    rs.Open Cmd1
+End If
+
+'Set Business Cal for ADV
+If Seg = "ADV" Then
+    Cmd1.CommandText = "UPDATE BUSINESS_CALENDAR SET offshore_reload_requested=0, offshore_dataload_status=0 WHERE effective_date >= '" & Format(FrDate, "DD-MMM-YY") & "'"
+    rs.Open Cmd1
+End If
+
+cn.Close
+
+Set cn = Nothing
+Set rs = Nothing
+    
+Exit Sub
+    
+ErrModBussCal:
+    ErrFlag = 1
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in ModBussCal"
+    LogBookCounter = LogBookCounter + 1
+    LogBook.Save
+    Set cn = Nothing
+    Set rs = Nothing
+    MacroError = 1
+    Status = "DRIVER: Error in ModBussCal"
+End Sub
+
+
+Function ReLoadDay() As Integer
+
+On Error GoTo ErrReLoadDay
+
+    Dim objSession As Object
+    Dim objDatabase As Object
+    Dim ORADynaSet As Object
+    Dim x As Integer
+    Dim y As Integer
+    Dim SQL As String
+    Dim cn As ADODB.Connection
+    Dim rs As ADODB.Recordset
+    
+    Set cn = New ADODB.Connection
+    Set rs = New ADODB.Recordset
+       
+    ReLoadDay = 0
+    
+    cn.Open "Provider=OraOLEDB.Oracle" & _
+    ";Data Source=" & ORADB & _
+    ";User ID=" & UserID & _
+    ";Password=" & Password
+    
+    SQL = "Select count(*) from Business_Calendar where RELOAD_REQUESTED = 1 AND Effective_Date < '" & Application.Text(VBA.Date, "DD-MMM-YY") & "'"
+    rs.Open SQL, cn
+    If rs.Fields(0).Value > 0 Then
+        If IsDate(rs.Fields(0).Value) Then
+            ReLoadDate = rs.Fields(0).Value
+            ReLoadDay = 1
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Reload Requested for " & Application.Text(ReLoadDate, "DD-MMM-YY")
+            LogBookCounter = LogBookCounter + 1
+        
+        Else
+            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Reload Date exists but could not be fetched for " & CurrSeg
+            LogBookCounter = LogBookCounter + 1
+            ErrFlag = 1
+            LogBook.Save
+            DataReady = 0
+            Status = "Reload Date exists but could not be fetched for " & CurrSeg
+        End If
+    Else
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "No Reload Request "
+        LogBookCounter = LogBookCounter + 1
+    End If
+    
+''''    ' Use OO4O
+''''    Set objSession = CreateObject("OracleInProcServer.XOraSession")
+''''    Set objDatabase = objSession.OpenDatabase(ORADB, UserID & "/" & Password, 0)
+''''
+''''    If CurrSeg = "DOM" Then
+''''        SQL = "Select Effective_Date from Business_Calendar where RELOAD_REQUESTED = 1 AND Effective_Date < '" & Application.Text(VBA.Date, "DD-MMM-YY") & "'"
+''''    End If
+''''
+''''    If CurrSeg = "ADV" Then
+''''        SQL = "Select Effective_Date from Business_Calendar where OFFSHORE_RELOAD_REQUESTED = 1 AND Effective_Date < '" & Application.Text(VBA.Date, "DD-MMM-YY") & "'"
+''''    End If
+''''    'ADDED FOR PMS
+''''    'CHECK QUERY
+''''    If CurrSeg = "PMS" Then
+''''        SQL = "Select Effective_Date from Business_Calendar where PMS_RELOAD_REQUESTED = 1 AND Effective_Date < '" & Application.Text(VBA.Date, "DD-MMM-YY") & "'"
+''''    End If
+''''
+''''    Set ORADynaSet = objDatabase.DBCreateDynaset(SQL, 0)
+''''
+''''    If ORADynaSet.RecordCount > 0 Then
+''''
+''''        ORADynaSet.MoveFirst
+''''        If IsDate(ORADynaSet.Fields(0).Value) Then
+''''            ReLoadDate = ORADynaSet.Fields(0).Value
+''''            ReLoadDay = 1
+''''            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Reload Requested for " & CurrSeg & " from:" & Application.Text(ReLoadDate, "DD-MMM-YY")
+''''            LogBookCounter = LogBookCounter + 1
+''''
+''''        Else
+''''            LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Reload Date exists but could not be fetched for " & CurrSeg
+''''            LogBookCounter = LogBookCounter + 1
+''''            ErrFlag = 1
+''''            LogBook.Save
+''''            DataReady = 0
+''''            Status = "Reload Date exists but could not be fetched for " & CurrSeg
+''''        End If
+''''    Else
+''''        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "No Reload Request for " & CurrSeg
+''''        LogBookCounter = LogBookCounter + 1
+''''    End If
+
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+
+Exit Function
+
+ErrReLoadDay:
+    MsgBox Err.Description
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "DRIVER: Error in ReLoadDay" & Err.Description
+    LogBookCounter = LogBookCounter + 1
+    LogBook.Save
+    DataReady = 0
+    Status = "DRIVER: Macro Error: Error in find ReLoadDay from database"
+    
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+
+End Function
+
+Sub SendErrorMail()
+
+On Error GoTo ErrSendErrorMail
+
+Dim iConf As New CDO.Configuration
+Dim Flds  As ADODB.Fields
+Dim CCIds As String
+Dim Emailbody As String
+
+Toreceiver = ThisWorkbook.Worksheets("Send_Mail").Range("B2").Value
+Ccreceiver = ThisWorkbook.Worksheets("Send_Mail").Range("C2").Value
+Bccreceiver = ThisWorkbook.Worksheets("Send_Mail").Range("D2").Value
+
+
+Set Flds = iConf.Fields
+
+' Set the configuration
+iConf.Load -1  ' CDO Source Defaults
+
+With Flds
+.Item(cdoSendUsingMethod) = 2
+.Item(CDO.cdoSMTPServerPort) = 25
+.Item(cdoSMTPServer) = "10.199.15.24"
+.Item(CDO.cdoSMTPAuthenticate) = 0
+.Item(cdoSMTPConnectionTimeout) = 10
+.Update
+End With
+
+Dim iMsg As New CDO.Message
+Set iMsg.Configuration = iConf
+
+'UNCOMMENT AFTER ADDING EMAIL IDS
+'CCIds = GetEmailIDs()
+Emailbody = "Production - The daily attribution process for " & Format(CurrDataDate, "DD-MMM-YY") & ", run on " & Application.Text(VBA.Date, "DD-MMM-YY")
+Emailbody = Emailbody & ", failed. The message reported is: " & Status
+' go on to use Message object
+
+With iMsg
+  .To = Toreceiver
+  .CC = Ccreceiver
+  .BCC = Bccreceiver
+  .From = "Attribution@Production <rcam.valueat@nipponindiamf.com>"
+  .subject = "Attribution Alert Email"
+  .TextBody = Emailbody
+  .Send
+End With
+
+Exit Sub
+
+ErrSendErrorMail:
+
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in SendEmail" & Err.Description
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Save
+    DataReady = 0
+
+End Sub
+
+Sub SendSuccess_EMail()
+
+On Error GoTo ErrSendSuccMail
+
+Dim iConf As New CDO.Configuration
+Dim Flds  As ADODB.Fields
+Dim CCIds As String
+Dim Emailbody As String
+
+Toreceiver = ThisWorkbook.Worksheets("Send_Mail").Range("B4").Value
+Ccreceiver = ThisWorkbook.Worksheets("Send_Mail").Range("C4").Value
+Bccreceiver = ThisWorkbook.Worksheets("Send_Mail").Range("D4").Value
+''Bccreceiver = "ashwani.kumar@nipponindiaamc.com ;omprakash.kuckian@nipponindiaamc.com;sailesh.bhan@nipponindiaamc.com;Samir.Rachh@nipponindiaamc.com;sanjay.h.parekh@nipponindiaamc.com;shrey.loonker@nipponindiaamc.com  ;varun.goenka@nipponindiaamc.com ; abhilash.nambiar@nipponindiaamc.com ; anand.d.gupta@nipponindiaamc.com ;krishan.daga@nipponindiaamc.com;kunals@valuefy.com;support@valuefy.com; Israr.ahmed@nipponindiaamc.com; Santosh.sawant@nipponindiaamc.com"
+
+
+Set Flds = iConf.Fields
+
+' Set the configuration
+iConf.Load -1  ' CDO Source Defaults
+
+With Flds
+.Item(cdoSendUsingMethod) = 2
+.Item(CDO.cdoSMTPServerPort) = 25
+.Item(cdoSMTPServer) = "10.199.15.24"
+.Item(CDO.cdoSMTPAuthenticate) = 0
+.Item(cdoSMTPConnectionTimeout) = 10
+.Update
+End With
+
+Dim iMsg As New CDO.Message
+Set iMsg.Configuration = iConf
+
+
+With iMsg
+
+  .To = Toreceiver
+  .CC = Ccreceiver
+  .BCC = Bccreceiver
+  .From = "<rcam.valueat@nipponindiamf.com>"
+  .subject = "UPGRADE ValueAT Equity Portfolio System READY :: " & Application.Text(VBA.Date, "DD-MMM-YY")
+  .TextBody = "This is a system generated email."
+  .Send
+End With
+
+
+Exit Sub
+
+ErrSendSuccMail:
+
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in SendSuccessEmail" & Err.Description
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Save
+    DataReady = 0
+
+End Sub
+
+Function GetEmailIDs() As String
+
+On Error GoTo ErrGetEmailIDs
+    Dim objSession As Object
+    Dim objDatabase As Object
+    Dim SQL As String
+    Dim ORADynaSet As Object
+    Dim x As Integer
+    Dim y As Integer
+    
+    ORADB = ThisWorkbook.Worksheets("Main").Range("B3").Value
+    UserID = ThisWorkbook.Worksheets("Main").Range("B4").Value
+    Password = ThisWorkbook.Worksheets("Main").Range("B5").Value
+    
+    GetEmailIDs = ""
+
+    Set objSession = CreateObject("OracleInProcServer.XOraSession")
+    Set objDatabase = objSession.OpenDatabase(ORADB, UserID & "/" & Password, 0)
+    
+    Dim CountFail As Integer
+    SQL = "Select email from alert_emailids"
+    Set ORADynaSet = objDatabase.DBCreateDynaset(SQL, 0)
+
+    If ORADynaSet.RecordCount > 0 Then
+        
+        ORADynaSet.MoveFirst
+
+        For y = 0 To ORADynaSet.RecordCount - 1
+            For x = 0 To ORADynaSet.Fields.Count - 1
+                GetEmailIDs = GetEmailIDs & ORADynaSet.Fields(x).Value & ";"
+            Next
+            ORADynaSet.MoveNext
+        Next
+    Else
+        GetEmailIDs = ""
+    End If
+
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+    
+Exit Function
+    
+ErrGetEmailIDs:
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+    GetEmailIDs = ""
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in GetEmailIDs"
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Save
+    DataReady = 0
+    Status = "Macro Error: Error in GetEmailIDs"
+    
+End Function
+
+
+Sub Test()
+        
+On Error GoTo TestMain
+Application.DisplayAlerts = False
+Application.ScreenUpdating = False
+        
+Dim DOMMacroBook As Workbook
+        
+        'MACRO RUN
+        DOMMacroFilePath = ThisWorkbook.Worksheets("Main").Range("B10").Value
+        
+        Workbooks.Open DOMMacroFilePath
+        Set DOMMacroBook = ActiveWorkbook
+        
+        Application.Run "'" & DOMMacroBook.Name & "'!VALATTest"
+        
+        DOMMacroBook.Close False
+
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+
+Exit Sub
+
+TestMain:
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+
+MsgBox Err.Description
+
+End Sub
+
+Sub EmailUnknownSectSecurities()
+
+On Error GoTo ErrEmailUnkSectSecu
+
+    Dim iConf As New CDO.Configuration
+    Dim Flds  As ADODB.Fields
+    Dim CCIds As String
+    Dim Emailbody As String
+    
+    Set Flds = iConf.Fields
+    
+    iConf.Load -1  ' CDO Source Defaults
+    
+    With Flds
+    .Item(cdoSendUsingMethod) = 2
+    .Item(CDO.cdoSMTPServerPort) = 25
+    .Item(cdoSMTPServer) = "10.199.15.24"
+    .Item(CDO.cdoSMTPAuthenticate) = 0
+    .Item(cdoSMTPConnectionTimeout) = 10
+    .Update
+    End With
+    
+    Dim iMsg As New CDO.Message
+    Set iMsg.Configuration = iConf
+    
+    Dim objSession As Object
+    Dim objDatabase As Object
+    Dim SQL As String
+    Dim ORADynaSet As Object
+    Dim x As Integer
+    Dim y As Integer
+    Dim SecuriyNames As String
+    
+        
+    ORADB = ThisWorkbook.Worksheets("Main").Range("B3").Value
+    UserID = ThisWorkbook.Worksheets("Main").Range("B4").Value
+    Password = ThisWorkbook.Worksheets("Main").Range("B5").Value
+    
+    Set objSession = CreateObject("OracleInProcServer.XOraSession")
+    Set objDatabase = objSession.OpenDatabase(ORADB, UserID & "/" & Password, 0)
+    
+    'CurrDataDate = ThisWorkbook.Worksheets("Main").Range("C18").Value
+        
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Fetching List of Securities in Unknown Sector"
+    LogBookCounter = LogBookCounter + 1
+    
+    SQL = "Select SECURITY_NAME from security_master where Sector_id=17"
+
+
+    Set ORADynaSet = objDatabase.DBCreateDynaset(SQL, 0)
+
+    If ORADynaSet.RecordCount > 0 Then
+        
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Securities Found in Unknown Sector, Creating List"
+        LogBookCounter = LogBookCounter + 1
+        
+        For y = 0 To ORADynaSet.RecordCount - 1
+            
+            'Put Script Name
+            SecuriyNames = SecuriyNames & ORADynaSet.Fields(0).Value & ", "
+            
+            ORADynaSet.MoveNext
+        
+        Next
+        
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "List Created Successfully"
+        LogBookCounter = LogBookCounter + 1
+        
+        
+        Emailbody = "Production - Few Securities found in Unkown Sector : " & SecuriyNames
+        
+        ' go on to use Message object
+        With iMsg
+          .To = "dharmesh.hingu@nipponindiaamc.com"
+          'UNCOMMENT AFTER ADDING EMAIL IDS
+          '.CC = CCIds
+          .CC = "kunals@valuefy.com;ajayp@valuefy.com;varun.goenka@nipponindiaamc.com;aroon.hingorani@nipponindiaamc.com"
+          .From = "<rcam.valueat@nipponindiamf.com>"
+          .subject = "Attribution : Unkown Sector"
+          .TextBody = Emailbody
+          '.Send
+        End With
+        
+    Else
+        LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Securities not found in Unkown Sector"
+        LogBookCounter = LogBookCounter + 1
+        
+    End If
+
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+    
+Exit Sub
+    
+ErrEmailUnkSectSecu:
+    Set objSession = Nothing
+    Set objDatabase = Nothing
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in Emailing Securities in Unknown Sector"
+    LogBookCounter = LogBookCounter + 1
+    ErrFlag = 1
+    MacroError = 1
+    LogBook.Save
+    DataReady = 0
+    Status = "Macro Error: Error in Emailing Securities in Unknown Sector"
+    
+End Sub
+
+ 'DEFINE HOLDINGS AND TRANSACTION DAILY EMAILING PAGE
+ Public Sub SendDailyReports()
+ 
+ Dim Input_URL As String
+ 
+    On Error GoTo ErrSendingDailyReports
+    
+   Input_URL = "http://10.65.8.6:8888/DailyReportGenerator.aspx"
+   ShellExecute 0&, vbNullString, Input_URL, vbNullString, _
+       vbNullString, SW_SHOWNORMAL
+ Exit Sub
+ 
+ErrSendingDailyReports:
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in SendDailyReports"
+    LogBookCounter = LogBookCounter + 1
+    Status = "Macro Error: Error in SendDailyReports"
+    
+End Sub
+
+  'DEFINE live Screen DAILY EMAILING PAGE
+ Public Sub SendLivePDF()
+ 
+ Dim Input_URL As String
+ 
+    On Error GoTo ErrSendingPDFReports
+ 
+   Input_URL = "http://10.65.8.6:9000/pdfcreator_downlodpdf.aspx"
+   ShellExecute 0&, vbNullString, Input_URL, vbNullString, _
+       vbNullString, SW_SHOWNORMAL
+Exit Sub
+
+ErrSendingPDFReports:
+    LogBook.Worksheets("Sheet1").Range("A" & LogBookCounter).Value = "Error in SendDailyReports"
+    LogBookCounter = LogBookCounter + 1
+    Status = "Macro Error: Error in SendDailyReports"
+ End Sub

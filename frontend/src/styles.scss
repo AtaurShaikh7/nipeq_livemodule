@@ -1,0 +1,30 @@
+@use '@angular/material' as mat;
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', Arial, sans-serif;
+  font-size: 12px;
+  background: #f4f6f8;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+
+/* Material overrides */
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: #323232;
+  --mdc-snackbar-supporting-text-color: #fff;
+  font-size: 13px;
+}
+
+/* AG Grid theme adjustments */
+.ag-theme-alpine {
+  --ag-font-size: 12px;
+  --ag-font-family: 'Roboto', Arial, sans-serif;
+}
+
+/* Return colours used in grid cellStyle */
+.ret-pos { color: #1a8a3a !important; font-weight: 500; }
+.ret-neg { color: #d32f2f !important; font-weight: 500; }

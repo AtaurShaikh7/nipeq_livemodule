@@ -1,0 +1,520 @@
+<!-- ═══ SHELL WRAPPER (sidebar + main) ════════════════════════════ -->
+<div class="shell">
+
+  <!-- ── LEFT SIDEBAR ──────────────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <span class="sb-logo-icon">V</span>
+    </div>
+    <div class="sb-nav">
+      <button class="sb-btn" title="Dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+      </button>
+      <button class="sb-btn" title="Analytics">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+      </button>
+      <button class="sb-btn active" title="Portfolio">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+        </svg>
+      </button>
+      <button class="sb-btn" title="Reports">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+      </button>
+      <button class="sb-btn" title="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
+        </svg>
+      </button>
+    </div>
+    <div class="sb-bottom">
+      <div class="sb-avatar">S</div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN AREA ──────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- ─ TOP NAV ─────────────────────────────────────────────── -->
+    <header class="top-nav">
+      <div class="tn-left">
+        <img class="tn-logo" src="logo-white.png" alt="ValueAT" />
+        <span class="tn-sep">|</span>
+        <span class="tn-page">Live Portfolio</span>
+      </div>
+      <div class="tn-right">
+        <!-- Dark / Light mode toggle -->
+        <button class="theme-toggle" [class.dark-active]="darkMode"
+                (click)="toggleDarkMode()" [title]="darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+          <div class="toggle-track">
+            <!-- Sun icon (light) -->
+            <svg class="toggle-icon sun" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            <!-- Moon icon (dark) -->
+            <svg class="toggle-icon moon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+            </svg>
+            <div class="toggle-thumb"></div>
+          </div>
+        </button>
+        <div class="tn-user">
+          <div class="tn-avatar">S</div>
+          <span class="tn-name">Support Sol...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ─ CONTROLS AREA ───────────────────────────────────────── -->
+    <div class="controls-area">
+      <div class="ctrl-row">
+
+        <!-- ── LEFT: Fund selector ── -->
+        <div class="ctrl-fund-left">
+          <div class="ctrl-label">FUND NAME</div>
+          <div class="fund-dd-wrap" [class.open]="fundDropdownOpen">
+            <button class="fund-dd-trigger fund-dd-trigger--large" (click)="fundDropdownOpen = !fundDropdownOpen">
+              <span class="fund-dd-name">{{ selectedFundName || 'Select Fund' }}</span>
+              <svg class="fund-dd-arrow" [class.flipped]="fundDropdownOpen"
+                   width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            @if (fundDropdownOpen) {
+              <div class="fund-dd-backdrop" (click)="fundDropdownOpen = false; fundSearch = ''"></div>
+              <div class="fund-dd-panel">
+                <div class="fund-dd-search-wrap">
+                  <div class="fund-dd-search-label">SEARCH FUNDS</div>
+                  <div class="fund-dd-search-box">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" [(ngModel)]="fundSearch" placeholder="Search..." autofocus />
+                  </div>
+                </div>
+                <div class="fund-dd-list">
+                  @for (f of filteredFunds; track f.fund_id) {
+                    <div class="fund-dd-item" [class.active]="f.fund_id === selectedFundId"
+                         (mousedown)="selectFund(f)">
+                      {{ f.fund_name }}
+                    </div>
+                  }
+                  @if (filteredFunds.length === 0) {
+                    <div class="fund-dd-empty">No funds found</div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="ctrl-spacer"></div>
+
+        <!-- ── RIGHT: Layout | Index | Date | Process ── -->
+        <div class="ctrl-right-group">
+
+          <!-- Layout dropdown (custom) -->
+          <div class="ctrl-item layout-block">
+            <div class="ctrl-label">LAYOUT NAME</div>
+            <div class="fund-dd-wrap" [class.open]="layoutDropdownOpen">
+              <button class="fund-dd-trigger" (click)="layoutDropdownOpen = !layoutDropdownOpen">
+                <span class="fund-dd-name">{{ selectedLayoutName }}</span>
+                <svg class="fund-dd-arrow" [class.flipped]="layoutDropdownOpen"
+                     width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              @if (layoutDropdownOpen) {
+                <div class="fund-dd-backdrop" (click)="layoutDropdownOpen = false"></div>
+                <div class="fund-dd-panel fund-dd-panel--right">
+                  <div class="fund-dd-list">
+                    <div class="fund-dd-item" [class.active]="!selectedLayoutId"
+                         (mousedown)="selectLayout(null)">Default</div>
+                    @for (l of layouts; track l.layout_id) {
+                      <div class="fund-dd-item" [class.active]="l.layout_id === selectedLayoutId"
+                           (mousedown)="selectLayout(l.layout_id)">
+                        {{ l.layout_name }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Index dropdown -->
+          <div class="ctrl-item index-block">
+            <div class="ctrl-label">INDEX NAME</div>
+            <div class="fund-dd-wrap" [class.open]="indexDropdownOpen">
+              <button class="fund-dd-trigger" (click)="indexDropdownOpen = !indexDropdownOpen">
+                <span class="fund-dd-name">{{ selectedIndexName }}</span>
+                <svg class="fund-dd-arrow" [class.flipped]="indexDropdownOpen"
+                     width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              @if (indexDropdownOpen) {
+                <div class="fund-dd-backdrop" (click)="indexDropdownOpen = false; indexSearch = ''"></div>
+                <div class="fund-dd-panel fund-dd-panel--right">
+                  <div class="fund-dd-search-wrap">
+                    <div class="fund-dd-search-label">SEARCH INDEX</div>
+                    <div class="fund-dd-search-box">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                      </svg>
+                      <input type="text" [(ngModel)]="indexSearch" placeholder="Search..." autofocus />
+                    </div>
+                  </div>
+                  <div class="fund-dd-list">
+                    @for (i of filteredIndices; track i.index_id) {
+                      <div class="fund-dd-item" [class.active]="i.index_id === selectedIndexId"
+                           (mousedown)="selectIndex(i)">
+                        {{ i.index_name }}
+                      </div>
+                    }
+                    @if (filteredIndices.length === 0) {
+                      <div class="fund-dd-empty">No indices found</div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Report Date -->
+          <div class="ctrl-item">
+            <div class="ctrl-label">REPORT DATE</div>
+            <div class="date-trigger-wrap">
+              <button class="date-trigger-btn" (click)="dateInput.showPicker()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>{{ selectedDate | date:'dd-MM-yyyy' }}</span>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              <input #dateInput type="date" class="date-hidden-input" [(ngModel)]="selectedDate" [max]="todayStr" />
+            </div>
+          </div>
+
+          <!-- Process -->
+          <div class="ctrl-item ctrl-item--process">
+            <div class="ctrl-label">&nbsp;</div>
+            <button class="process-btn" (click)="process()" [disabled]="loading">
+              @if (loading) { <span class="spin"></span>&nbsp;Processing }
+              @else { Process }
+            </button>
+          </div>
+
+        </div><!-- /ctrl-right-group -->
+      </div>
+
+    </div>
+
+    <!-- ─ STATS STRIP ──────────────────────────────────────────── -->
+    <div class="stats-strip">
+
+      <!-- Group 1: Fund Ret | Alpha | Index Ret -->
+      <div class="stat-group">
+        <div class="stat-col" [class.neg]="stats.fundRet < 0" [class.pos]="stats.fundRet > 0">
+          <div class="sv-wrap"><div class="sv">{{ fmt1(stats.fundRet) }}%</div></div>
+          <div class="sl">Fund Ret. (%)</div>
+        </div>
+        <div class="stat-vdiv"></div>
+        <div class="stat-col" [class.neg]="stats.alpha < 0" [class.pos]="stats.alpha > 0">
+          <div class="sv-wrap"><div class="sv">{{ fmt1(stats.alpha) }}%</div></div>
+          <div class="sl">Alpha (%)</div>
+        </div>
+        <div class="stat-vdiv"></div>
+        <div class="stat-col" [class.neg]="stats.indexRet < 0" [class.pos]="stats.indexRet > 0">
+          <div class="sv-wrap"><div class="sv">{{ fmt1(stats.indexRet) }}%</div></div>
+          <div class="sl">Index Ret. (%)</div>
+        </div>
+      </div>
+
+      <!-- Group 2: Invested % | AUM | Cash & C.E. -->
+      <div class="stat-group">
+        <div class="stat-col">
+          <div class="sv-wrap">
+            <div class="sv n">{{ fmt1(stats.investedPct) }}%<span class="sc">&nbsp;({{ stats.investedCr | number:'1.0-0' }})</span></div>
+          </div>
+          <div class="sl">Invested %</div>
+        </div>
+        <div class="stat-vdiv"></div>
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ stats.aum | number:'1.0-0' }}</div></div>
+          <div class="sl">AUM (Cr.)</div>
+        </div>
+        <div class="stat-vdiv"></div>
+        <div class="stat-col">
+          <div class="sv-wrap">
+            <div class="sv n">{{ fmt1(stats.cashPct) }}%<span class="sc">&nbsp;({{ stats.cashCr | number:'1.0-0' }})</span></div>
+          </div>
+          <div class="sl">Cash &amp; C.E. %</div>
+        </div>
+      </div>
+
+      <!-- Group 3: Wtd. Avg. Mcap Fund | Wtd. Avg. Mcap Index -->
+      <div class="stat-group">
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ fmtK(stats.wtdMcapFund) }}</div></div>
+          <div class="sl">Wtd. Avg. Mcap Fund</div>
+        </div>
+        <div class="stat-vdiv"></div>
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ fmtK(stats.wtdMcapIndex) }}</div></div>
+          <div class="sl">Wtd. Avg. Mcap Index</div>
+        </div>
+      </div>
+
+      <!-- Group 4: Large Cap | Mid Cap | Small Cap | Rest -->
+      <div class="stat-group">
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ fmt1(stats.largeCap) }}%</div></div>
+          <div class="sl">Large Cap (%)</div>
+        </div>
+        <div class="stat-vdiv"></div>
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ fmt1(stats.midCap) }}%</div></div>
+          <div class="sl">Mid Cap (%)</div>
+        </div>
+        <div class="stat-vdiv"></div>
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ fmt1(stats.smallCap) }}%</div></div>
+          <div class="sl">Small Cap (%)</div>
+        </div>
+        <div class="stat-vdiv"></div>
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ fmt1(stats.rest) }}%</div></div>
+          <div class="sl">Rest (%)</div>
+        </div>
+      </div>
+
+      <!-- Single: Mkt. Pos. -->
+      <div class="stat-group">
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ fmt1(stats.mktPos) }}%</div></div>
+          <div class="sl">Mkt. Pos. (%)</div>
+        </div>
+      </div>
+
+      <!-- Single: T/O Ratio -->
+      <div class="stat-group">
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ stats.toRatio | number:'1.2-2' }}</div></div>
+          <div class="sl">T/O Ratio</div>
+        </div>
+      </div>
+
+      <!-- Paired: C Rating | D Rating -->
+      <div class="stat-group">
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ fmt1(stats.cRatingWtg) }}%</div></div>
+          <div class="sl">C Rating Wtg %</div>
+        </div>
+        <div class="stat-vdiv"></div>
+        <div class="stat-col">
+          <div class="sv-wrap"><div class="sv n">{{ fmt1(stats.dRatingWtg) }}%</div></div>
+          <div class="sl">D Rating Wtg %</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ─ TABS + FILTER + GRID TOOLBAR ───────────────────────── -->
+    <div class="below-stats">
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <button class="tab" [class.active]="activeTab === 'fund'" (click)="activeTab = 'fund'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          Fund Report
+        </button>
+        <button class="tab" [class.active]="activeTab === 'style'" (click)="activeTab = 'style'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          Style Analysis
+        </button>
+        <div class="tab-bar-right">
+          <span class="tick-label">Price ticks as on :&nbsp;<strong>{{ priceTickDate || '—' }}&nbsp;00:00</strong></span>
+          <button class="export-btn red" title="Export PDF" (click)="exportPdf()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            PDF
+          </button>
+          <button class="export-btn grn" title="Export Excel" (click)="exportXls()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            XLS
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter + search row (Fund Report tab only) -->
+      <div class="filter-row" *ngIf="activeTab === 'fund'">
+        <div class="filters">
+
+          <!-- Only Fund — disabled while No Position is active -->
+          <label class="fl" [class.fl--locked]="noPosition">
+            <input type="checkbox" [(ngModel)]="onlyFund"
+              [disabled]="noPosition"
+              (ngModelChange)="onFilterChange()"> Only Fund
+          </label>
+
+          <!-- Only Index — always independently toggleable -->
+          <label class="fl">
+            <input type="checkbox" [(ngModel)]="onlyIndex"
+              (ngModelChange)="onFilterChange()"> Only Index
+          </label>
+
+          <!-- No Position — clears Only Fund when ticked -->
+          <label class="fl">
+            <input type="checkbox" [(ngModel)]="noPosition"
+              (ngModelChange)="onNoPositionChange()"> No position
+          </label>
+
+          <!-- Only Sector — ticking clears No Sector + Sub Sector -->
+          <label class="fl">
+            <input type="checkbox" [(ngModel)]="onlySector"
+              (ngModelChange)="onOnlySectorChange()"> Only Sector
+          </label>
+
+          <!-- Sub Sector — ticking clears No Sector + Only Sector -->
+          <label class="fl">
+            <input type="checkbox" [(ngModel)]="subSector"
+              (ngModelChange)="onSubSectorChange()"> Sub sector
+          </label>
+
+          <!-- No Sector — ticking clears Only Sector + Sub Sector -->
+          <label class="fl">
+            <input type="checkbox" [(ngModel)]="noSector"
+              (ngModelChange)="onNoSectorChange()"> No sector
+          </label>
+
+        </div>
+        <div class="filter-right">
+          <button class="col-btn" (click)="showColPanel = !showColPanel">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+            Columns
+          </button>
+          <button class="lay-btn" (click)="updateCurrentLayout()">Update Layout</button>
+          <button class="lay-btn" (click)="saveNewLayout()">New Layout</button>
+          <div class="search-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input class="search-box" type="text" placeholder="Search here"
+                   [(ngModel)]="searchText" (input)="onSearch()" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Column panel -->
+      @if (showColPanel) {
+        <div class="col-panel-backdrop" (click)="showColPanel = false"></div>
+        <div class="col-panel-bar">
+          <div class="col-panel-header" (click)="$event.stopPropagation()">
+            <span class="col-panel-title">Columns</span>
+            <button class="col-reset-btn" (click)="resetColumns()">Reset to Default</button>
+          </div>
+          @for (col of colVis; track col.field) {
+            <label class="cp-item" (click)="$event.stopPropagation()">
+              <input type="checkbox" [(ngModel)]="col.visible"
+                     (ngModelChange)="toggleColumn(col.field, col.visible)">
+              {{ col.headerName }}
+            </label>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ─ STYLE ANALYSIS TAB ───────────────────────────────────── -->
+    <app-style-analysis
+      *ngIf="activeTab === 'style'"
+      [darkMode]="darkMode"
+      [allRows]="allRows">
+    </app-style-analysis>
+
+    <!-- ─ AG GRID (Fund Report tab only) ───────────────────────── -->
+    <div class="grid-wrap" *ngIf="activeTab === 'fund'">
+
+      <!-- Skeleton loading overlay -->
+      @if (loading) {
+        <div class="skeleton-wrap">
+          <!-- Header skeleton -->
+          <div class="sk-header">
+            @for (w of skColWidths; track $index) {
+              <div class="sk-hcell" [style.width.px]="w"></div>
+            }
+          </div>
+          <!-- Row skeletons -->
+          @for (row of skRows; track $index) {
+            <div class="sk-row" [class.sk-sector]="row.isSector">
+              @if (row.isSector) {
+                <div class="sk-sector-bar"></div>
+              } @else {
+                @for (w of skColWidths; track $index) {
+                  <div class="sk-cell" [style.width.px]="w">
+                    <div class="sk-pulse" [style.width.%]="row.fills[$index]"></div>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <ag-grid-angular
+        class="ag-theme-alpine"
+        [style.visibility]="loading ? 'hidden' : 'visible'"
+        [rowData]="filteredRows"
+        [columnDefs]="columnDefs"
+        [defaultColDef]="defaultColDef"
+        [getRowClass]="getRowClass"
+        [postSortRows]="postSortRows"
+        [animateRows]="false"
+        [rowHeight]="28"
+        [headerHeight]="34"
+        style="width:100%;height:100%;"
+        (gridReady)="onGridReady($event)">
+      </ag-grid-angular>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->

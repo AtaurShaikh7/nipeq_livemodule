@@ -1,0 +1,407 @@
+PROCEDURE SP_FE_MODEL_COMP_SCREEN 
+
+(
+
+    FUNDID IN NUMBER, 
+
+    FROMDATE IN DATE, 
+
+    TODATE IN DATE, 
+
+    RESULTSET1 OUT SYS_REFCURSOR, 
+
+    RESULTSET2 OUT SYS_REFCURSOR, 
+
+    RESULTSET3 OUT SYS_REFCURSOR
+
+)
+
+AS
+
+INDEXID NUMBER;
+
+FromClosePrice number; -- ADDED
+
+ToClosePrice number;--ADDED
+
+ExchangeId number;--ADDED
+
+BEGIN
+
+
+
+SELECT DEFAULT_INDEX_ID, EXCHANGE_ID INTO INDEXID, ExchangeId FROM FUNDS WHERE FUND_ID = FUNDID;
+
+
+
+INSERT ALL INTO COMP_SCREEN_TEMP
+
+(
+
+  SECURITY_CODE,
+
+  UNIVERSE,
+
+  SECTOR_NAME,
+
+  SUB_SECTOR,
+
+  ANALYST,
+
+  MARKET_CAP,
+
+  FROM_INDEX_WEIGHT,
+
+  FROM_FUND_WEIGHT,
+
+  FROM_CLOSE_PRICE,
+
+  TO_INDEX_WEIGHT,
+
+  TO_FUND_WEIGHT,
+
+  TO_CLOSE_PRICE,
+
+  PRICE_CHANGE,
+
+  TO_UW_OW,
+
+  FROM_UW_OW)
+
+
+
+  select 
+
+  --ADDED BY CHETAN TO INSERT RECORDS IN PROPER ORDER IN COMP_SCREEN_TEMP TABLE  001.
+
+    DAT.SECURITY_CODE
+
+    , SM.SECURITY_NAME
+
+    , S.SECTOR_NAME
+
+    , S1.SECTOR_SHORT_NAME
+
+    , (KAM.FIRST_NAME ||' '|| KAM.LAST_NAME) AS ANALYST
+
+    , DAT.TO_MARKETCAP
+
+    , DAT.FROM_INDEX_WEIGHT
+
+    , DAT.FROM_FUND_WEIGHT
+
+    , DAT.FROM_CLOSE_PRICE    
+
+    , DAT.TO_INDEX_WEIGHT
+
+    , DAT.TO_FUND_WEIGHT
+
+    , DAT.TO_CLOSE_PRICE
+
+   --001
+
+    , (DAT.TO_CLOSE_PRICE/DAT.FROM_CLOSE_PRICE-1) AS PRICE_CHANGE
+
+    , nvl(DAT.TO_FUND_WEIGHT,0)-nvl(DAT.TO_INDEX_WEIGHT,0) AS To_UW_OW
+
+    , nvl(DAT.from_FUND_WEIGHT,0)-nvl(DAT.from_INDEX_WEIGHT,0) AS from_UW_OW
+
+    
+
+  from
+
+    (
+
+      select NVL(FROM_DATA.SECURITY_CODE,TO_DATA.SECURITY_CODE) AS SECURITY_CODE
+
+      ,NVL(FROM_DATA.FROM_INDEX_WEIGHT,0) AS FROM_INDEX_WEIGHT
+
+      ,NVL(FROM_DATA.FROM_FUND_WEIGHT,0) AS FROM_FUND_WEIGHT
+
+      ,NVL(FROM_DATA.FROM_CLOSE_PRICE,SC_CLOSEP) AS FROM_CLOSE_PRICE   -- ADDED
+
+      ,NVL(TO_DATA.TO_INDEX_WEIGHT,0) AS TO_INDEX_WEIGHT
+
+      ,NVL(TO_DATA.TO_FUND_WEIGHT,0) AS TO_FUND_WEIGHT      
+
+      ,NVL(TO_DATA.TO_CLOSE_PRICE,SC2_CLOSEP) AS TO_CLOSE_PRICE --ADDED      
+
+      ,NVL(FROM_MARKETCAP,0) AS FROM_MARKETCAP
+
+      ,NVL(TO_MARKETCAP,0) AS TO_MARKETCAP
+
+      from
+
+        (
+
+          select ALLD.security_code
+
+                ,NVL(ALLD.BMWEIGHT,0) AS FROM_INDEX_WEIGHT
+
+                ,NVL(ALLD.PWEIGHT,0) as FROM_FUND_WEIGHT                                
+
+                ,ALLD.CLOSEP AS FROM_CLOSE_PRICE
+
+                ,NVL(SDF.MARKETCAP,0) AS FROM_MARKETCAP                
+
+            from 
+
+            (
+
+                SELECT NVL(FH.SECURITY_CODE,IC.SECURITY_CODE) AS SECURITY_CODE
+
+                     ,round(((fh.mtm_value + NVL(fh.accrued_interest,0) )/ fh.nav),8) AS PWEIGHT
+
+                     ,weights AS BMWEIGHT
+
+                     ,FSC.CLOSEP AS CLOSEP --ADDED                   
+
+                FROM 
+
+                (
+
+                    SELECT FH.SECURITY_CODE,FH.MTM_VALUE,FH.ACCRUED_INTEREST,FN.NAV FROM fund_holdings FH
+
+                    INNER JOIN FUND_NAV FN
+
+                    ON FN.FUND_ID=fh.FUND_ID AND FN.VALUE_DATE=fh.EFFECTIVE_DATE
+
+                    WHERE FH.FUND_ID = FUNDID AND FH.EFFECTIVE_DATE = TRUNC(FROMDATE)
+
+                )FH
+
+                FULL JOIN
+
+                (
+
+                    SELECT SECURITY_CODE,WEIGHTS FROM INDEX_CONSTITUENTS WHERE INDEX_ID = INDEXID AND EFFECTIVE_DATE = TRUNC(FROMDATE)
+
+                )IC
+
+                ON FH.SECURITY_CODE = IC.SECURITY_CODE
+
+                left join
+
+                FUND_SECURITY_CLOSEPRICES FSC
+
+                   ON FSC.SECURITY_CODE=FH.SECURITY_CODE AND FSC.FUND_ID=FUNDID AND FSC.PRICE_DATE=TRUNC(FROMDATE)
+
+            )ALLD 
+
+          LEFT JOIN 
+
+          (
+
+            SELECT SECURITY_CODE,MARKETCAP
+
+            ,EFFECTIVE_DATE -- ADDED
+
+            FROM SECURITY_DYNAMIC_FACTORS
+
+            WHERE EFFECTIVE_DATE = TRUNC(FROMDATE)
+
+          )SDF
+
+          ON SDF.SECURITY_CODE=ALLD.SECURITY_CODE
+
+        )FROM_DATA
+
+        FULL JOIN
+
+        (
+
+            select  ALLD.security_code
+
+                    ,NVL(ALLD.BMWEIGHT,0) AS TO_INDEX_WEIGHT
+
+                    ,NVL(ALLD.PWEIGHT,0) as TO_FUND_WEIGHT
+
+                    ,ALLD.CLOSEP AS TO_CLOSE_PRICE -- ADDED
+
+                    ,NVL(SDF.MARKETCAP,0) AS TO_MARKETCAP
+
+            from 
+
+            (
+
+                SELECT NVL(FH.SECURITY_CODE,IC.SECURITY_CODE) AS SECURITY_CODE
+
+                     ,round(((fh.mtm_value + NVL(fh.accrued_interest,0) )/ fh.nav),8) AS PWEIGHT
+
+                     ,weights AS BMWEIGHT
+
+                     , FSC.CLOSEP -- ADDED
+
+                FROM 
+
+                (
+
+                    SELECT FH.SECURITY_CODE,FH.MTM_VALUE,FH.ACCRUED_INTEREST,FN.NAV FROM fund_holdings FH
+
+                    INNER JOIN FUND_NAV FN
+
+                    ON FN.FUND_ID=fh.FUND_ID AND FN.VALUE_DATE=fh.EFFECTIVE_DATE
+
+                    WHERE FH.FUND_ID = FUNDID AND FH.EFFECTIVE_DATE = TRUNC(TODATE)
+
+                )FH
+
+                FULL JOIN
+
+                (
+
+                    SELECT SECURITY_CODE,WEIGHTS FROM INDEX_CONSTITUENTS WHERE INDEX_ID = INDEXID AND EFFECTIVE_DATE = TRUNC(TODATE)
+
+                )IC
+
+                ON FH.SECURITY_CODE = IC.SECURITY_CODE
+
+                
+
+                 -- ADDED 001
+
+              --  INNER JOIN -- commented
+
+              left join-- added
+
+                FUND_SECURITY_CLOSEPRICES FSC
+
+                   ON FSC.SECURITY_CODE=NVL(FH.SECURITY_CODE,IC.SECURITY_CODE) AND FSC.FUND_ID=FUNDID AND FSC.PRICE_DATE=TRUNC(TODATE) 
+
+                --001
+
+                
+
+            )ALLD 
+
+              LEFT JOIN 
+
+              (
+
+                SELECT SECURITY_CODE,EFFECTIVE_DATE,MARKETCAP FROM SECURITY_DYNAMIC_FACTORS
+
+                WHERE EFFECTIVE_DATE = TRUNC(TODATE)
+
+              )SDF
+
+              ON SDF.SECURITY_CODE=ALLD.SECURITY_CODE
+
+              
+
+              /* COMMENTED
+
+              INNER JOIN FUND_SECURITY_CLOSEPRICES FSC
+
+             -- ON FSC.SECURITY_CODE=ALLD.SECURITY_CODE AND FSC.FUND_ID=FUNDID AND FSC.PRICE_DATE=ALLD.EFFECTIVE_DATE  --COMMENTED
+
+             
+
+             ON FSC.SECURITY_CODE=ALLD.SECURITY_CODE AND FSC.FUND_ID=FUNDID AND FSC.PRICE_DATE=SDF.EFFECTIVE_DATE  --ADDED
+
+             */
+
+        )TO_DATA
+
+        on TO_DATA.SECURITY_CODE=FROM_DATA.SECURITY_CODE    
+
+        LEFT JOIN
+
+        (
+
+          SELECT CLOSEP AS SC_CLOSEP, SECURITY_CODE FROM SECURITY_CLOSEPRICES 
+
+          WHERE  EXCHANGE_ID=ExchangeId AND PRICE_DATE=TRUNC(FROMDATE)
+
+        )SC
+
+        ON SC.SECURITY_CODE=NVL(TO_DATA.SECURITY_CODE,FROM_DATA.SECURITY_CODE)        
+
+        LEFT JOIN  --ADDED
+
+        (
+
+          SELECT CLOSEP AS SC2_CLOSEP, SECURITY_CODE FROM SECURITY_CLOSEPRICES 
+
+          WHERE  EXCHANGE_ID=ExchangeId AND PRICE_DATE=TRUNC(TODATE)
+
+        )SC2
+
+       ON SC2.SECURITY_CODE=NVL(TO_DATA.SECURITY_CODE,FROM_DATA.SECURITY_CODE)
+
+       
+
+    )DAT
+
+    inner join security_master sm
+
+    on sm.SECURITY_CODE=DAT.SECURITY_CODE
+
+    INNER JOIN 
+
+    (SELECT * FROM SECURITY_SECTOR_MAPPING WHERE SECTOR_CLASS_ID = 1) SSM
+
+    ON SM.SECURITY_CODE = SSM.SECURITY_CODE
+
+    INNER JOIN
+
+    (SELECT * FROM SECURITY_SECTOR_MAPPING WHERE SECTOR_CLASS_ID = 3) SUBSSM
+
+    ON SM.SECURITY_CODE = SUBSSM.SECURITY_CODE
+
+    inner join sectors s
+
+    on s.SECTOR_ID=SSM.SECTOR_ID
+
+    INNER JOIN SECTORS S1       
+
+    ON S1.SECTOR_ID = SUBSSM.SECTOR_ID  
+
+    left JOIN KM_CLIENT_SECURITY_UNIVERSE KAS
+
+    --ON KAS.SECURITY_CODE=fh.SECURITY_CODE   -- COMMENTED
+
+    ON KAS.SECURITY_CODE=DAT.SECURITY_CODE     -- ADDED
+
+    INNER JOIN km_analyst_master KAM
+
+    ON KAM.ANALYST_ID=KAS.ANALYST_ID;
+
+    
+
+  
+
+  OPEN RESULTSET1 FOR
+
+  SELECT * FROM COMP_SCREEN_TEMP;
+
+  
+
+  
+
+  OPEN RESULTSET2 FOR 
+
+    select distinct analyst, SUM(from_index_weight) AS FROM_INDEX_WEIGHT, SUM(FROM_FUND_WEIGHT) AS FROM_FUND_WEIGHT, 
+
+    SUM(TO_INDEX_WEIGHT) AS TO_INDEX_WEIGHT, SUM(TO_FUND_WEIGHT) AS TO_FUND_WEIGHT
+
+    FROM COMP_SCREEN_TEMP 
+
+    GROUP BY ANALYST;
+
+    
+
+  OPEN RESULTSET3 FOR 
+
+    select distinct SECTOR_NAME, SUM(from_index_weight)AS FROM_INDEX_WEIGHT, SUM(FROM_FUND_WEIGHT) AS FROM_FUND_WEIGHT, 
+
+    SUM(TO_INDEX_WEIGHT)AS TO_INDEX_WEIGHT, SUM(TO_FUND_WEIGHT) TO_FUND_WEIGHT
+
+    FROM COMP_SCREEN_TEMP 
+
+    GROUP BY SECTOR_NAME
+
+    ORDER BY SECTOR_NAME;
+
+  
+
+END SP_FE_MODEL_COMP_SCREEN;

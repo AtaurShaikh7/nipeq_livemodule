@@ -1,0 +1,1 @@
+PROCEDURE              SP_VALAT_SPECIFIC_FI" (FundID in NUMBER, IndexID in NUMBER, FromDate in Date, ToDate in Date, Scope_Identity out NUMBER)
