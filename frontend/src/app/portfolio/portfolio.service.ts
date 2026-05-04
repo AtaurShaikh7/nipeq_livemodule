@@ -35,7 +35,7 @@ export class PortfolioService {
   }
 
   getPortfolio(fundId: number, indexId: number, runDate: string): Observable<PortfolioRow[]> {
-    if (USE_MOCK) return this.http.get<PortfolioRow[]>('/assets/portfolio-data.json');
+    if (USE_MOCK) return this.http.get<PortfolioRow[]>('assets/portfolio-data.json');
     return this.api.get<PortfolioRow[]>('/portfolio', { fundId, indexId, runDate });
   }
 

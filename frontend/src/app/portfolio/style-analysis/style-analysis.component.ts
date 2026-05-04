@@ -52,7 +52,7 @@ export class StyleAnalysisComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     // Load historical performance from JSON (comes from DB in production)
-    this.http.get<any>('/assets/style-analysis-data.json').subscribe(d => {
+    this.http.get<any>('assets/style-analysis-data.json').subscribe(d => {
       this.historicalPerf = d.historicalPerformance ?? [];
       this._perfOrig = [...this.historicalPerf];
     });

@@ -138,7 +138,7 @@ export class ShowcaseComponent implements OnInit {
     e?.stopPropagation();
     this.closeDropdowns();
     this.loading = true;
-    this.http.get<PortfolioRow[]>('/assets/portfolio-data.json').subscribe(rows => {
+    this.http.get<PortfolioRow[]>('assets/portfolio-data.json').subscribe(rows => {
       setTimeout(() => {
         this.allRows = rows;
         this.computeStats(rows);
@@ -240,13 +240,13 @@ export class ShowcaseComponent implements OnInit {
   ngOnInit(): void {
     this.darkMode = localStorage.getItem('nipeq_dark') !== '0'; // default dark
     this.buildColumnDefs();
-    this.http.get<PortfolioRow[]>('/assets/portfolio-data.json').subscribe(rows => {
+    this.http.get<PortfolioRow[]>('assets/portfolio-data.json').subscribe(rows => {
       this.allRows = rows;
       this.computeStats(rows);
       this.onFilterChange();
       this.compute(rows);
     });
-    this.http.get<any>('/assets/style-analysis-data.json').subscribe(d => {
+    this.http.get<any>('assets/style-analysis-data.json').subscribe(d => {
       this.historicalPerf = d.historicalPerformance ?? [];
       this._perfOrig = [...this.historicalPerf];
     });
