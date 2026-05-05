@@ -1663,9 +1663,9 @@ $sk-shine: rgba(255,255,255,0.04);
   .sc-fund-trigger { height: 32px; padding: 0 8px; font-size: 12px; }
   .sc-fund-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  /* KPI strip: 2 columns, smaller */
+  /* KPI strip: single column on mobile */
   .kpi-strip {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 8px;
     padding: 10px 14px;
   }
