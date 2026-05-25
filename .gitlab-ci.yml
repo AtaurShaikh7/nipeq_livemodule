@@ -13,7 +13,7 @@ build:
   script:
     - cd frontend
     - npm ci
-    - npm run build -- --configuration production --base-href "/$CI_PROJECT_NAME/"
+    - npm run build -- --configuration production --base-href "/nipeq_livemodule/"
   artifacts:
     paths:
       - frontend/dist/nipeq-frontend/browser
