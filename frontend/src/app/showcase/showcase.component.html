@@ -45,14 +45,19 @@
   <!-- ── TOP NAV ───────────────────────────────────────────────── -->
   <header class="sc-top-nav">
     <div class="sc-tn-left">
-      <img class="sc-tn-logo" src="logo-white.png" alt="ValueAT" />
+      <!-- Mobile hamburger -->
+      <button class="sc-mob-icon-btn sc-mobile-only" style="margin-right:4px" (click)="mobileDrawerOpen = true; $event.stopPropagation()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <img class="sc-tn-logo" src="assets/logo-white.png" alt="ValueAT" />
       <span class="sc-tn-sep">|</span>
-      <span class="sc-tn-page">Live Portfolio</span>
+      <span class="sc-tn-page sc-desktop-only">Live Portfolio</span>
     </div>
     <div class="sc-tn-right">
-      <!-- Theme toggle -->
-      <button class="sc-theme-toggle" [class.dark-active]="darkMode" (click)="toggleDarkMode()"
-              [title]="darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+      <!-- Theme toggle (both desktop and mobile) -->
+      <button class="sc-theme-toggle" [class.dark-active]="darkMode" (click)="toggleDarkMode()">
         <div class="sc-toggle-track">
           <svg class="sc-toggle-icon sun" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
             <circle cx="12" cy="12" r="5"/>
@@ -71,16 +76,34 @@
           <div class="sc-toggle-thumb"></div>
         </div>
       </button>
-      <!-- User -->
-      <div class="sc-tn-user">
+      <!-- Desktop user -->
+      <div class="sc-tn-user sc-desktop-only">
         <div class="sc-tn-avatar">S</div>
         <span class="sc-tn-name">Support Sol...</span>
       </div>
     </div>
   </header>
 
+  <!-- ── MOBILE COLLAPSED HEADER ─────────────────────────────── -->
+  <div class="sc-mobile-collapsed-bar" *ngIf="controlsCollapsed" (click)="expandControls()">
+    <div class="sc-mobile-collapsed-info">
+      <span class="sc-mobile-collapsed-fund">{{ scFundName }}</span>
+      <span class="sc-mobile-collapsed-sep">|</span>
+      <span class="sc-mobile-collapsed-index">{{ scIndexName }}</span>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </div>
+
   <!-- ── CONTROLS AREA ─────────────────────────────────────── -->
-  <div class="sc-controls-area" (click)="closeDropdowns()">
+  <div class="sc-controls-area" *ngIf="!controlsCollapsed" (click)="closeDropdowns()">
+    <!-- Mobile collapse button (up arrow only, no text) -->
+    <div class="sc-mob-collapse-btn sc-mobile-only" (click)="controlsCollapsed = true; $event.stopPropagation()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </div>
     <div class="sc-ctrl-row">
 
       <!-- Fund Name (left, large) -->
@@ -190,29 +213,38 @@
     <!-- Performance -->
     <div class="kpi-card">
       <span class="kpi-card-label">Performance</span>
-      <div class="kpi-perf-row">
-
+      <!-- Desktop view: 3 metrics -->
+      <div class="kpi-perf-row sc-desktop-only">
         <div class="perf-text-item">
           <span class="perf-text-val" [ngClass]="retClass(kpi.fundRet1d)">
             {{ kpi.fundRet1d >= 0 ? '+' : '' }}{{ n2(kpi.fundRet1d) }}%
           </span>
           <span class="perf-donut-label">FUND RET. (%)</span>
         </div>
-
         <div class="perf-text-item">
           <span class="perf-text-val" [ngClass]="retClass(kpi.alpha1d)">
             {{ kpi.alpha1d >= 0 ? '+' : '' }}{{ n2(kpi.alpha1d) }}%
           </span>
           <span class="perf-donut-label">ALPHA (%)</span>
         </div>
-
         <div class="perf-text-item">
           <span class="perf-text-val" [ngClass]="retClass(kpi.indexRet1d)">
             {{ kpi.indexRet1d >= 0 ? '+' : '' }}{{ n2(kpi.indexRet1d) }}%
           </span>
           <span class="perf-donut-label">INDEX RET. (%)</span>
         </div>
-
+      </div>
+      <!-- Mobile view: compact like reference -->
+      <div class="kpi-mob-perf sc-mobile-only">
+        <div class="kpi-mob-val" [ngClass]="retClass(kpi.fundRet1d)">
+          {{ kpi.fundRet1d >= 0 ? '+' : '' }}{{ n2(kpi.fundRet1d) }}%
+        </div>
+        <div class="kpi-mob-sub">FUND RET. (%)</div>
+        <svg class="kpi-mob-spark" viewBox="0 0 100 30" preserveAspectRatio="none">
+          <path d="M0,25 Q15,20 25,25 T50,10 T75,15 T100,5" fill="none"
+                [attr.stroke]="kpi.fundRet1d >= 0 ? '#4ade80' : '#f87171'"
+                stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </div>
     </div>
 
@@ -335,6 +367,125 @@
 
   </div><!-- /kpi-strip -->
 
+  <!-- ══════════════════════════════════════════════════════════
+       MOBILE SUMMARY SECTIONS (shown only on mobile, summary tab)
+       ══════════════════════════════════════════════════════════ -->
+  <div class="sc-mob-summary" *ngIf="mobileNav === 'summary'">
+
+    <!-- 1. PERFORMANCE -->
+    <div class="sc-mob-section">
+      <div class="sc-mob-section-title">PERFORMANCE</div>
+      <div class="sc-mob-perf-row">
+        <div class="sc-mob-metric">
+          <span class="sc-mob-metric-val" [ngClass]="retClass(kpi.fundRet1d)">{{ kpi.fundRet1d >= 0 ? '+' : '' }}{{ n2(kpi.fundRet1d) }}%</span>
+          <span class="sc-mob-metric-lbl">FUND RET. (%)</span>
+        </div>
+        <div class="sc-mob-metric-div"></div>
+        <div class="sc-mob-metric">
+          <span class="sc-mob-metric-val" [ngClass]="retClass(kpi.alpha1d)">{{ kpi.alpha1d >= 0 ? '+' : '' }}{{ n2(kpi.alpha1d) }}%</span>
+          <span class="sc-mob-metric-lbl">ALPHA (%)</span>
+        </div>
+        <div class="sc-mob-metric-div"></div>
+        <div class="sc-mob-metric">
+          <span class="sc-mob-metric-val" [ngClass]="retClass(kpi.indexRet1d)">{{ kpi.indexRet1d >= 0 ? '+' : '' }}{{ n2(kpi.indexRet1d) }}%</span>
+          <span class="sc-mob-metric-lbl">INDEX RET. (%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. MARKET CAP (WTD. AVG) -->
+    <div class="sc-mob-section">
+      <div class="sc-mob-section-title">MARKET CAP (WTD. AVG)</div>
+      <div class="sc-mob-mcap-row">
+        <span class="sc-mob-mcap-lbl">FUND</span>
+        <span class="sc-mob-mcap-val">{{ fmt(kpi.wtdMcapFund) }} CR</span>
+      </div>
+      <div class="sc-mob-bar-track">
+        <div class="sc-mob-bar-fill sc-mob-bar-fund" [style.width]="barWidth(kpi.wtdMcapFund, Math.max(kpi.wtdMcapFund, kpi.wtdMcapIndex, 1))"></div>
+      </div>
+      <div class="sc-mob-mcap-row" style="margin-top:10px">
+        <span class="sc-mob-mcap-lbl">INDEX</span>
+        <span class="sc-mob-mcap-val">{{ fmt(kpi.wtdMcapIndex) }} CR</span>
+      </div>
+      <div class="sc-mob-bar-track">
+        <div class="sc-mob-bar-fill sc-mob-bar-index" [style.width]="barWidth(kpi.wtdMcapIndex, Math.max(kpi.wtdMcapFund, kpi.wtdMcapIndex, 1))"></div>
+      </div>
+    </div>
+
+    <!-- 3. CAPITAL BREAKDOWN -->
+    <div class="sc-mob-section">
+      <div class="sc-mob-section-title">CAPITAL BREAKDOWN</div>
+      <div class="sc-mob-cap-row">
+        <!-- Invested semicircle -->
+        <div class="sc-mob-semi-wrap">
+          <svg class="sc-mob-semi-svg" viewBox="0 0 100 55">
+            <path d="M 10,50 A 40,40 0 0,1 90,50" fill="none" stroke="#e5e7eb" stroke-width="10" stroke-linecap="round"/>
+            <path d="M 10,50 A 40,40 0 0,1 90,50" fill="none" stroke="#22c55e" stroke-width="10" stroke-linecap="round"
+                  [attr.stroke-dasharray]="(kpi.investedPct / 100 * 125.66) + ' 125.66'"
+                  stroke-dashoffset="0"/>
+            <text x="50" y="46" text-anchor="middle" font-size="13" font-weight="700" class="sc-mob-semi-text">{{ n1(kpi.investedPct) }}%</text>
+          </svg>
+          <span class="sc-mob-semi-lbl">INVESTED</span>
+          <span class="sc-mob-semi-sub">({{ (kpi.investedPct / 100 * kpi.aumCr | number:'1.0-0') }} CR)</span>
+        </div>
+        <!-- AUM center -->
+        <div class="sc-mob-aum-center">
+          <span class="sc-mob-aum-val">{{ kpi.aumCr | number:'1.0-0' }} CR</span>
+          <span class="sc-mob-aum-lbl">TOTAL AUM</span>
+        </div>
+        <!-- Cash semicircle -->
+        <div class="sc-mob-semi-wrap">
+          <svg class="sc-mob-semi-svg" viewBox="0 0 100 55">
+            <path d="M 10,50 A 40,40 0 0,1 90,50" fill="none" stroke="#e5e7eb" stroke-width="10" stroke-linecap="round"/>
+            <path d="M 10,50 A 40,40 0 0,1 90,50" fill="none" stroke="#3b82f6" stroke-width="10" stroke-linecap="round"
+                  [attr.stroke-dasharray]="(kpi.cashPct / 100 * 125.66) + ' 125.66'"
+                  stroke-dashoffset="0"/>
+            <text x="50" y="46" text-anchor="middle" font-size="13" font-weight="700" class="sc-mob-semi-text">{{ n1(kpi.cashPct) }}%</text>
+          </svg>
+          <span class="sc-mob-semi-lbl">CASH &amp; C.E.</span>
+          <span class="sc-mob-semi-sub">({{ (kpi.cashPct / 100 * kpi.aumCr | number:'1.0-0') }} CR)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. MARKET CAP EXPOSURE -->
+    <div class="sc-mob-section">
+      <div class="sc-mob-section-title">MARKET CAP EXPOSURE</div>
+      <div class="sc-mob-seg-bar">
+        <div class="sc-mob-seg" *ngFor="let s of mcapExpDonuts; let i = index"
+             [style.flex]="s.pct" [class]="'sc-mob-seg-' + i">
+          <span class="sc-mob-seg-pct" *ngIf="+s.pct > 3">{{ n1(+s.pct) }}%</span>
+        </div>
+      </div>
+      <div class="sc-mob-seg-labels">
+        <div class="sc-mob-seg-label" *ngFor="let s of mcapExpDonuts; let i = index" [style.flex]="s.pct">
+          <span [class]="'sc-mob-seg-lbl-' + i">{{ s.label === 'Rest' ? 'REST (' + n1(+s.pct) + '%)' : s.label.replace(' Cap','').toUpperCase() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. RATING % -->
+    <div class="sc-mob-section">
+      <div class="sc-mob-section-title">RATING %</div>
+      <div class="sc-mob-rating-row">
+        <div class="sc-mob-rat-item" *ngFor="let r of ratingAll">
+          <svg class="sc-mob-rat-svg" viewBox="0 0 100 55">
+            <path d="M 10,50 A 40,40 0 0,1 90,50" fill="none" stroke="#e5e7eb" stroke-width="10" stroke-linecap="round"/>
+            <path d="M 10,50 A 40,40 0 0,1 90,50" fill="none"
+                  [attr.stroke]="ratingColor(r.label)" stroke-width="10" stroke-linecap="round"
+                  [attr.stroke-dasharray]="(r.fundPct / 100 * 125.66) + ' 125.66'"
+                  stroke-dashoffset="0"/>
+            <text x="50" y="46" text-anchor="middle" font-size="16" font-weight="800"
+                  [attr.fill]="ratingColor(r.label)">{{ r.label }}</text>
+          </svg>
+          <span class="sc-mob-rat-pct">{{ n1(r.fundPct) }}%</span>
+          <span class="sc-mob-rat-lbl">RATING {{ r.label }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sc-mob-summary -->
+
   <!-- ── TAB BAR ───────────────────────────────────────────────── -->
   <div class="sc-tab-bar">
     <!-- Fund Report tab -->
@@ -426,7 +577,9 @@
   </ng-container>
 
   <!-- ── AG GRID SECTION (Fund Report tab) ────────────────────── -->
-  <div class="sc-grid-wrap" *ngIf="activeTab === 'fund'">
+  <div class="sc-grid-wrap" *ngIf="activeTab === 'fund'" [class.sc-mob-holdings-grid]="true"
+       [style.display]="(activeTab === 'fund') ? '' : 'none'"
+       [class.sc-mob-hidden]="mobileNav !== 'holdings'">
 
     <!-- Skeleton loading overlay -->
     <div class="sc-skeleton-wrap" *ngIf="loading">
@@ -751,6 +904,158 @@
     </div>
 
   </div><!-- /bottom row -->
+
+  <!-- ── MOBILE SEARCH PANEL ──────────────────────────────────── -->
+  <div class="sc-mob-panel sc-mob-search-panel" *ngIf="mobileSearchOpen" (click)="$event.stopPropagation()">
+    <div class="sc-mob-panel-header">
+      <span class="sc-mob-panel-title">Search</span>
+      <button class="sc-mob-panel-close" (click)="mobileSearchOpen = false">✕</button>
+    </div>
+    <div class="sc-mob-search-inner">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="sc-mob-search-input" type="text" placeholder="Search securities..." [(ngModel)]="searchText" (input)="onSearch()" autofocus />
+    </div>
+  </div>
+
+  <!-- ── MOBILE FILTERS PANEL ──────────────────────────────────── -->
+  <div class="sc-mob-panel sc-mob-filters-panel" *ngIf="mobileFiltersOpen" (click)="$event.stopPropagation()">
+    <div class="sc-mob-panel-header">
+      <span class="sc-mob-panel-title">Filters</span>
+      <button class="sc-mob-panel-close" (click)="mobileFiltersOpen = false">✕</button>
+    </div>
+    <div class="sc-mob-filters-inner">
+      <label class="sc-fl sc-fl--radio" [class.sc-fl--locked]="noPosition">
+        <span class="sc-radio" [class.sc-radio--on]="onlyFund && !noPosition"></span>
+        <input type="checkbox" [(ngModel)]="onlyFund" [disabled]="noPosition" (ngModelChange)="onFilterChange()" style="display:none"> Only Fund
+      </label>
+      <label class="sc-fl sc-fl--radio">
+        <span class="sc-radio" [class.sc-radio--on]="onlyIndex"></span>
+        <input type="checkbox" [(ngModel)]="onlyIndex" (ngModelChange)="onFilterChange()" style="display:none"> Only Index
+      </label>
+      <button class="sc-fpill" [class.sc-fpill--on]="noPosition"  (click)="noPosition=!noPosition;onNoPositionChange()">No position</button>
+      <button class="sc-fpill" [class.sc-fpill--on]="onlySector"  (click)="onlySector=!onlySector;onOnlySectorChange()">Only Sector</button>
+      <button class="sc-fpill" [class.sc-fpill--on]="subSector"   (click)="subSector=!subSector;onSubSectorChange()">Sub sector</button>
+      <button class="sc-fpill" [class.sc-fpill--on]="noSector"    (click)="noSector=!noSector;onNoSectorChange()">No sector</button>
+      <button class="sc-col-btn" style="margin-top:8px" (click)="showColPanel = !showColPanel; mobileFiltersOpen = false">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        Columns
+      </button>
+    </div>
+  </div>
+
+  <!-- ── MOBILE EXPORT PANEL ───────────────────────────────────── -->
+  <div class="sc-mob-panel sc-mob-export-panel" *ngIf="mobileExportOpen" (click)="$event.stopPropagation()">
+    <div class="sc-mob-panel-header">
+      <span class="sc-mob-panel-title">Export</span>
+      <button class="sc-mob-panel-close" (click)="mobileExportOpen = false">✕</button>
+    </div>
+    <div class="sc-mob-export-inner">
+      <button class="sc-export-btn sc-export-btn--red" style="width:100%;justify-content:center;height:40px;font-size:13px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Export PDF
+      </button>
+      <button class="sc-export-btn sc-export-btn--grn" style="width:100%;justify-content:center;height:40px;font-size:13px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Export Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- ── MOBILE BOTTOM NAV ─────────────────────────────────────── -->
+  <nav class="sc-mob-bottom-nav">
+    <!-- Summary -->
+    <button class="sc-mob-nav-item" [class.sc-mob-nav-item--active]="mobileNav === 'summary'"
+            (click)="mobileNav = 'summary'; mobileSearchOpen = false; mobileFiltersOpen = false; mobileExportOpen = false">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>Summary</span>
+    </button>
+    <!-- Holdings -->
+    <button class="sc-mob-nav-item" [class.sc-mob-nav-item--active]="mobileNav === 'holdings'"
+            (click)="mobileNav = 'holdings'; mobileSearchOpen = false; mobileFiltersOpen = false; mobileExportOpen = false">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>
+        <line x1="9" y1="9" x2="9" y2="21"/>
+      </svg>
+      <span>Holdings</span>
+    </button>
+    <!-- Export -->
+    <button class="sc-mob-nav-item" [class.sc-mob-nav-item--active]="mobileNav === 'export'"
+            (click)="mobileNav = 'export'; mobileSearchOpen = false; mobileFiltersOpen = false; mobileExportOpen = true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span>Export</span>
+    </button>
+  </nav>
+
+  <!-- ── MOBILE DRAWER ─────────────────────────────────────────── -->
+  <div class="sc-mob-drawer-backdrop" *ngIf="mobileDrawerOpen" (click)="mobileDrawerOpen = false"></div>
+  <div class="sc-mob-drawer" [class.sc-mob-drawer--open]="mobileDrawerOpen">
+    <!-- Header -->
+    <div class="sc-mob-drawer-header">
+      <img class="sc-mob-drawer-logo-img" src="assets/logo-white.png" alt="ValueAT"/>
+      <button class="sc-mob-drawer-close" (click)="mobileDrawerOpen = false">✕</button>
+    </div>
+    <!-- Nav items -->
+    <nav class="sc-mob-drawer-nav">
+      <button class="sc-mob-drawer-item" [class.sc-mob-drawer-item--active]="activeTab === 'fund'"
+              (click)="activeTab = 'fund'; mobileNav = 'summary'; mobileDrawerOpen = false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        Fund Report
+      </button>
+      <button class="sc-mob-drawer-item" [class.sc-mob-drawer-item--active]="activeTab === 'style'"
+              (click)="activeTab = 'style'; mobileDrawerOpen = false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+        Style Analysis
+      </button>
+    </nav>
+    <!-- Footer: user info -->
+    <div class="sc-mob-drawer-footer" (click)="showLogout = !showLogout; $event.stopPropagation()">
+      <div class="sc-mob-drawer-user-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+      </div>
+      <div class="sc-mob-drawer-user-info">
+        <span class="sc-mob-drawer-user-name">Admin User</span>
+        <span class="sc-mob-drawer-user-email">admin&#64;valueat.com</span>
+      </div>
+      <!-- Logout popup -->
+      <div class="sc-mob-logout-popup" *ngIf="showLogout" (click)="$event.stopPropagation()">
+        <button class="sc-mob-logout-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Log Out
+        </button>
+      </div>
+    </div>
+  </div>
 
   </div><!-- /sc-main -->
 

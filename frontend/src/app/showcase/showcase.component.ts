@@ -145,12 +145,45 @@ export class ShowcaseComponent implements OnInit {
         this.onFilterChange();
         this.compute(rows);
         this.loading = false;
+        // collapse controls on mobile after processing
+        if (window.innerWidth <= 768) this.controlsCollapsed = true;
       }, 600);
     });
   }
 
   // ── Sidebar ───────────────────────────────────────────────────
   sidebarCollapsed = true;
+
+  // ── Mobile controls collapsed state ──────────────────────────
+  controlsCollapsed = window.innerWidth <= 768;  // start collapsed on mobile
+  mobileSearchOpen  = false;
+  mobileFiltersOpen = false;
+  mobileExportOpen  = false;
+
+  expandControls(): void {
+    this.controlsCollapsed = false;
+    this.mobileSearchOpen  = false;
+    this.mobileFiltersOpen = false;
+    this.mobileExportOpen  = false;
+  }
+
+  toggleMobileSearch(): void {
+    this.mobileSearchOpen  = !this.mobileSearchOpen;
+    this.mobileFiltersOpen = false;
+    this.mobileExportOpen  = false;
+  }
+
+  toggleMobileFilters(): void {
+    this.mobileFiltersOpen = !this.mobileFiltersOpen;
+    this.mobileSearchOpen  = false;
+    this.mobileExportOpen  = false;
+  }
+
+  toggleMobileExport(): void {
+    this.mobileExportOpen  = !this.mobileExportOpen;
+    this.mobileSearchOpen  = false;
+    this.mobileFiltersOpen = false;
+  }
 
   // ── Tab switching ─────────────────────────────────────────────
   activeTab: 'fund' | 'style' = 'fund';
@@ -231,6 +264,12 @@ export class ShowcaseComponent implements OnInit {
   get ratingCD(): RatingRow[] {
     return this.ratingExposure.filter(r => r.label === 'C' || r.label === 'D');
   }
+  get ratingAll(): RatingRow[] { return this.ratingExposure; }
+
+  // Mobile nav
+  mobileNav: 'summary' | 'holdings' | 'export' = 'summary';
+  mobileDrawerOpen = false;
+  showLogout = false;
   get owMax(): number {
     return Math.max(...this.sectorPattern.map(r => Math.abs(r.owUw)), 1);
   }
