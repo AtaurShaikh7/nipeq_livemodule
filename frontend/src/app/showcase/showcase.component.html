@@ -484,6 +484,55 @@
       </div>
     </div>
 
+    <!-- 6. TOP PERFORMANCE ANALYSIS -->
+    <div class="sc-mob-section" *ngIf="topPerform">
+      <div class="sc-mob-section-title">TOP PERFORMANCE ANALYSIS</div>
+
+      <!-- Top Sector -->
+      <div class="sc-mob-tpa-card">
+        <div class="sc-mob-tpa-header">
+          <span class="sc-mob-tpa-tag">TOP PERFORMING SECTOR</span>
+          <span class="sc-mob-tpa-ret" [class.sc-mob-tpa-ret--pos]="topPerform!.ret1d >= 0"
+                                       [class.sc-mob-tpa-ret--neg]="topPerform!.ret1d < 0">
+            1D&nbsp;%&nbsp;&nbsp;{{ topPerform!.ret1d >= 0 ? '+' : '' }}{{ n2(topPerform!.ret1d) }}%
+          </span>
+        </div>
+        <div class="sc-mob-tpa-name">{{ topPerform!.sectorName }}</div>
+        <div class="sc-mob-tpa-wts">
+          <div class="sc-mob-tpa-wt">
+            <span class="sc-mob-tpa-wt-label">PORTFOLIO WT</span>
+            <span class="sc-mob-tpa-wt-val">{{ n2(topPerform!.portfolioWt) }}%</span>
+          </div>
+          <div class="sc-mob-tpa-wt">
+            <span class="sc-mob-tpa-wt-label">BENCHMARK WT</span>
+            <span class="sc-mob-tpa-wt-val">{{ n2(topPerform!.benchmarkWt) }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Sub-Sector -->
+      <div class="sc-mob-tpa-card sc-mob-tpa-card--sub">
+        <div class="sc-mob-tpa-header">
+          <span class="sc-mob-tpa-tag">TOP SUB-SECTOR</span>
+          <span class="sc-mob-tpa-ret" [class.sc-mob-tpa-ret--pos]="topPerform!.subRet1d >= 0"
+                                       [class.sc-mob-tpa-ret--neg]="topPerform!.subRet1d < 0">
+            1D&nbsp;%&nbsp;&nbsp;{{ topPerform!.subRet1d >= 0 ? '+' : '' }}{{ n2(topPerform!.subRet1d) }}%
+          </span>
+        </div>
+        <div class="sc-mob-tpa-name">{{ topPerform!.subSectorName }}</div>
+        <div class="sc-mob-tpa-wts">
+          <div class="sc-mob-tpa-wt">
+            <span class="sc-mob-tpa-wt-label">PORTFOLIO WT</span>
+            <span class="sc-mob-tpa-wt-val">{{ n2(topPerform!.subPortWt) }}%</span>
+          </div>
+          <div class="sc-mob-tpa-wt">
+            <span class="sc-mob-tpa-wt-label">BENCHMARK WT</span>
+            <span class="sc-mob-tpa-wt-val">{{ n2(topPerform!.subBenchWt) }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /sc-mob-summary -->
 
   <!-- ── TAB BAR ───────────────────────────────────────────────── -->

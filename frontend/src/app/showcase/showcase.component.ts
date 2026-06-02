@@ -31,6 +31,17 @@ interface KpiData {
   wtdMcapIndex: number;
 }
 
+interface TopPerformData {
+  sectorName:    string;
+  ret1d:         number;
+  portfolioWt:   number;
+  benchmarkWt:   number;
+  subSectorName: string;
+  subRet1d:      number;
+  subPortWt:     number;
+  subBenchWt:    number;
+}
+
 @Component({
   selector: 'app-showcase',
   standalone: true,
@@ -49,6 +60,7 @@ export class ShowcaseComponent implements OnInit {
   holdingsPattern:    HoldingRow[]  = [];
   mcapFundSegments:   McapSegment[] = [];
   mcapIndexSegments:  McapSegment[] = [];
+  topPerform:         TopPerformData | null = null;
 
   // Sort state
   sectorSort: { col: keyof SectorRow | null; dir: SortDir } = { col: null, dir: null };
@@ -713,6 +725,63 @@ export class ShowcaseComponent implements OnInit {
       const i = +(sIdx.get(sector)  ?? 0).toFixed(2);
       return { sector, indexPct: i, fundPct: f, owUw: +(f - i).toFixed(2) };
     });
+
+    // ── Top Performing Sector ────────────────────────────────────
+    // Compute weighted-avg ret_1d per sector from fund holdings
+    const secRet1dNum = new Map<string, number>();
+    const secRet1dDen = new Map<string, number>();
+    fundSec.forEach(r => {
+      const s = r.sector ?? '';
+      if (!s) return;
+      const wt = r.fund_wts ?? 0;
+      secRet1dNum.set(s, (secRet1dNum.get(s) ?? 0) + wt * (r.ret_1d ?? 0));
+      secRet1dDen.set(s, (secRet1dDen.get(s) ?? 0) + wt);
+    });
+    const sectorRet1d = [...secRet1dDen.keys()].map(s => ({
+      sector: s,
+      ret1d:  secRet1dDen.get(s)! > 0 ? +((secRet1dNum.get(s)! / secRet1dDen.get(s)!)).toFixed(2) : 0,
+      fundWt: +(sFund.get(s) ?? 0).toFixed(2),
+      idxWt:  +(sIdx.get(s)  ?? 0).toFixed(2),
+    }));
+    const bestSector = sectorRet1d.sort((a, b) => b.ret1d - a.ret1d)[0];
+
+    // Compute weighted-avg ret_1d per sub-sector within best sector
+    let topPerform: TopPerformData | null = null;
+    if (bestSector) {
+      const sectorRows = fundSec.filter(r => r.sector === bestSector.sector);
+      const ssRet1dNum = new Map<string, number>();
+      const ssRet1dDen = new Map<string, number>();
+      const ssFundWt   = new Map<string, number>();
+      const ssIdxWt    = new Map<string, number>();
+      sectorRows.forEach(r => {
+        const ss = (r as any).sub_sector ?? r.sector;
+        const wt = r.fund_wts ?? 0;
+        ssRet1dNum.set(ss, (ssRet1dNum.get(ss) ?? 0) + wt * (r.ret_1d ?? 0));
+        ssRet1dDen.set(ss, (ssRet1dDen.get(ss) ?? 0) + wt);
+        ssFundWt.set(ss,   (ssFundWt.get(ss) ?? 0) + wt);
+      });
+      idxSec.filter(r => r.sector === bestSector.sector).forEach(r => {
+        const ss = (r as any).sub_sector ?? r.sector;
+        ssIdxWt.set(ss, (ssIdxWt.get(ss) ?? 0) + (r.index_wts ?? 0));
+      });
+      const ssArr = [...ssRet1dDen.keys()].map(ss => ({
+        ss, ret1d: ssRet1dDen.get(ss)! > 0 ? +((ssRet1dNum.get(ss)! / ssRet1dDen.get(ss)!)).toFixed(2) : 0,
+        fundWt: +(ssFundWt.get(ss) ?? 0).toFixed(2),
+        idxWt:  +(ssIdxWt.get(ss)  ?? 0).toFixed(2),
+      }));
+      const bestSub = ssArr.sort((a, b) => b.ret1d - a.ret1d)[0];
+      topPerform = {
+        sectorName:    bestSector.sector,
+        ret1d:         bestSector.ret1d,
+        portfolioWt:   bestSector.fundWt,
+        benchmarkWt:   bestSector.idxWt,
+        subSectorName: bestSub?.ss ?? bestSector.sector,
+        subRet1d:      bestSub?.ret1d ?? 0,
+        subPortWt:     bestSub?.fundWt ?? 0,
+        subBenchWt:    bestSub?.idxWt ?? 0,
+      };
+    }
+    this.topPerform = topPerform;
 
     // ── Cos@ >1% WT IN INDEX ─────────────────────────────────────
     const cosMap = new Map<string, PortfolioRow>();
