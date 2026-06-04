@@ -2550,32 +2550,40 @@ $sk-shine: rgba(255,255,255,0.04);
   /* ── Top Performance Analysis ─────────────────────────────── */
   .sc-mob-tpa-card {
     background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
     border-radius: 10px;
     padding: 12px 14px;
     margin-top: 10px;
     &--sub { margin-top: 8px; }
   }
-  .sc-mob-tpa-header {
+  /* Row 1: tag on left, wt vs wt on right */
+  .sc-mob-tpa-row1 {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   .sc-mob-tpa-tag {
     font-size: 9px;
-    font-weight: 600;
+    font-weight: 700;
     color: #6b7280;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
   }
-  .sc-mob-tpa-ret {
+  .sc-mob-tpa-wt-inline {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     font-size: 11px;
     font-weight: 700;
-    &--pos { color: #22c55e; }
-    &--neg { color: #ef4444; }
   }
+  .sc-mob-tpa-wt-fund { color: #2563eb; }
+  .sc-mob-tpa-vs      { color: #6b7280; font-size: 9px; font-weight: 400; }
+  .sc-mob-tpa-wt-idx  { color: #94a3b8; }
+
+  /* Name */
   .sc-mob-tpa-name {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     color: #f1f5f9;
     text-transform: uppercase;
@@ -2583,29 +2591,37 @@ $sk-shine: rgba(255,255,255,0.04);
     margin-bottom: 10px;
     line-height: 1.2;
   }
-  .sc-mob-tpa-wts {
+
+  /* Returns row: 6 periods */
+  .sc-mob-tpa-rets {
     display: flex;
-    gap: 24px;
-  }
-  .sc-mob-tpa-wt {
-    display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     gap: 2px;
   }
-  .sc-mob-tpa-wt-label {
-    font-size: 8.5px;
+  .sc-mob-tpa-ret-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+  }
+  .sc-mob-tpa-ret-lbl {
+    font-size: 8px;
     color: #6b7280;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.3px;
   }
-  .sc-mob-tpa-wt-val {
-    font-size: 14px;
+  .sc-mob-tpa-ret-val {
+    font-size: 10px;
     font-weight: 700;
-    color: #f1f5f9;
+    &.sc-pos { color: #22c55e; }
+    &.sc-neg { color: #ef4444; }
   }
 
-  /* Light mode overrides */
-  :host:not(.dark) .sc-mob-tpa-card { background: rgba(0,0,0,0.04); }
+  /* Light mode */
+  :host:not(.dark) .sc-mob-tpa-card {
+    background: #ffffff;
+    border-color: rgba(0,0,0,0.08);
+  }
   :host:not(.dark) .sc-mob-tpa-name { color: #0f172a; }
-  :host:not(.dark) .sc-mob-tpa-wt-val { color: #0f172a; }
 }

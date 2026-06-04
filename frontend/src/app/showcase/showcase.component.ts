@@ -31,15 +31,17 @@ interface KpiData {
   wtdMcapIndex: number;
 }
 
+interface RetPeriods { r1d: number; r1w: number; r1m: number; r3m: number; r6m: number; r1y: number; }
+
 interface TopPerformData {
-  sectorName:    string;
-  ret1d:         number;
-  portfolioWt:   number;
-  benchmarkWt:   number;
-  subSectorName: string;
-  subRet1d:      number;
-  subPortWt:     number;
-  subBenchWt:    number;
+  sectorName:  string;
+  portfolioWt: number;
+  benchmarkWt: number;
+  sectorRets:  RetPeriods;
+  secName:     string;
+  secPortWt:   number;
+  secBenchWt:  number;
+  secRets:     RetPeriods;
 }
 
 @Component({
@@ -726,59 +728,49 @@ export class ShowcaseComponent implements OnInit {
       return { sector, indexPct: i, fundPct: f, owUw: +(f - i).toFixed(2) };
     });
 
-    // ── Top Performing Sector ────────────────────────────────────
-    // Compute weighted-avg ret_1d per sector from fund holdings
-    const secRet1dNum = new Map<string, number>();
-    const secRet1dDen = new Map<string, number>();
-    fundSec.forEach(r => {
-      const s = r.sector ?? '';
-      if (!s) return;
-      const wt = r.fund_wts ?? 0;
-      secRet1dNum.set(s, (secRet1dNum.get(s) ?? 0) + wt * (r.ret_1d ?? 0));
-      secRet1dDen.set(s, (secRet1dDen.get(s) ?? 0) + wt);
-    });
-    const sectorRet1d = [...secRet1dDen.keys()].map(s => ({
-      sector: s,
-      ret1d:  secRet1dDen.get(s)! > 0 ? +((secRet1dNum.get(s)! / secRet1dDen.get(s)!)).toFixed(2) : 0,
-      fundWt: +(sFund.get(s) ?? 0).toFixed(2),
-      idxWt:  +(sIdx.get(s)  ?? 0).toFixed(2),
-    }));
-    const bestSector = sectorRet1d.sort((a, b) => b.ret1d - a.ret1d)[0];
+    // ── Top Performing Sector + Security ────────────────────────
+    // Helper: weighted-avg return over a period for a set of rows
+    const wavRet = (rows: PortfolioRow[], retKey: keyof PortfolioRow): number => {
+      let num = 0, den = 0;
+      rows.forEach(r => { const wt = r.fund_wts ?? 0; num += wt * Number(r[retKey] ?? 0); den += wt; });
+      return den > 0 ? +(num / den).toFixed(2) : 0;
+    };
 
-    // Compute weighted-avg ret_1d per sub-sector within best sector
+    // Build per-sector weighted returns for all periods
+    const sectorRows = (s: string) => fundSec.filter(r => r.sector === s);
+    const sectorStats = [...new Set(fundSec.map(r => r.sector ?? '').filter(Boolean))].map(s => {
+      const rows = sectorRows(s);
+      return {
+        sector: s,
+        fundWt: +(sFund.get(s) ?? 0).toFixed(2),
+        idxWt:  +(sIdx.get(s)  ?? 0).toFixed(2),
+        rets: {
+          r1d: wavRet(rows, 'ret_1d'), r1w: wavRet(rows, 'ret_5d'),
+          r1m: wavRet(rows, 'ret_1m'), r3m: wavRet(rows, 'ret_3m'),
+          r6m: wavRet(rows, 'ret_6m'), r1y: wavRet(rows, 'ret_1y'),
+        } as RetPeriods,
+      };
+    });
+    const bestSector = sectorStats.sort((a, b) => b.rets.r1d - a.rets.r1d)[0];
+
     let topPerform: TopPerformData | null = null;
     if (bestSector) {
-      const sectorRows = fundSec.filter(r => r.sector === bestSector.sector);
-      const ssRet1dNum = new Map<string, number>();
-      const ssRet1dDen = new Map<string, number>();
-      const ssFundWt   = new Map<string, number>();
-      const ssIdxWt    = new Map<string, number>();
-      sectorRows.forEach(r => {
-        const ss = (r as any).sub_sector ?? r.sector;
-        const wt = r.fund_wts ?? 0;
-        ssRet1dNum.set(ss, (ssRet1dNum.get(ss) ?? 0) + wt * (r.ret_1d ?? 0));
-        ssRet1dDen.set(ss, (ssRet1dDen.get(ss) ?? 0) + wt);
-        ssFundWt.set(ss,   (ssFundWt.get(ss) ?? 0) + wt);
-      });
-      idxSec.filter(r => r.sector === bestSector.sector).forEach(r => {
-        const ss = (r as any).sub_sector ?? r.sector;
-        ssIdxWt.set(ss, (ssIdxWt.get(ss) ?? 0) + (r.index_wts ?? 0));
-      });
-      const ssArr = [...ssRet1dDen.keys()].map(ss => ({
-        ss, ret1d: ssRet1dDen.get(ss)! > 0 ? +((ssRet1dNum.get(ss)! / ssRet1dDen.get(ss)!)).toFixed(2) : 0,
-        fundWt: +(ssFundWt.get(ss) ?? 0).toFixed(2),
-        idxWt:  +(ssIdxWt.get(ss)  ?? 0).toFixed(2),
-      }));
-      const bestSub = ssArr.sort((a, b) => b.ret1d - a.ret1d)[0];
+      // Top security = highest fund_wts in the best sector
+      const secRows = sectorRows(bestSector.sector).sort((a, b) => (b.fund_wts ?? 0) - (a.fund_wts ?? 0));
+      const bestSec = secRows[0];
       topPerform = {
-        sectorName:    bestSector.sector,
-        ret1d:         bestSector.ret1d,
-        portfolioWt:   bestSector.fundWt,
-        benchmarkWt:   bestSector.idxWt,
-        subSectorName: bestSub?.ss ?? bestSector.sector,
-        subRet1d:      bestSub?.ret1d ?? 0,
-        subPortWt:     bestSub?.fundWt ?? 0,
-        subBenchWt:    bestSub?.idxWt ?? 0,
+        sectorName:  bestSector.sector,
+        portfolioWt: bestSector.fundWt,
+        benchmarkWt: bestSector.idxWt,
+        sectorRets:  bestSector.rets,
+        secName:     bestSec?.security_name ?? '',
+        secPortWt:   +(bestSec?.fund_wts  ?? 0).toFixed(2),
+        secBenchWt:  +(bestSec?.index_wts ?? 0).toFixed(2),
+        secRets: {
+          r1d: +(bestSec?.ret_1d ?? 0).toFixed(2), r1w: +(bestSec?.ret_5d ?? 0).toFixed(2),
+          r1m: +(bestSec?.ret_1m ?? 0).toFixed(2), r3m: +(bestSec?.ret_3m ?? 0).toFixed(2),
+          r6m: +(bestSec?.ret_6m ?? 0).toFixed(2), r1y: +(bestSec?.ret_1y ?? 0).toFixed(2),
+        } as RetPeriods,
       };
     }
     this.topPerform = topPerform;

@@ -496,47 +496,65 @@
     <div class="sc-mob-section" *ngIf="topPerform">
       <div class="sc-mob-section-title">TOP PERFORMANCE ANALYSIS</div>
 
-      <!-- Top Sector -->
+      <!-- Top Sector card -->
       <div class="sc-mob-tpa-card">
-        <div class="sc-mob-tpa-header">
-          <span class="sc-mob-tpa-tag">TOP PERFORMING SECTOR</span>
-          <span class="sc-mob-tpa-ret" [class.sc-mob-tpa-ret--pos]="topPerform!.ret1d >= 0"
-                                       [class.sc-mob-tpa-ret--neg]="topPerform!.ret1d < 0">
-            1D&nbsp;%&nbsp;&nbsp;{{ topPerform!.ret1d >= 0 ? '+' : '' }}{{ n2(topPerform!.ret1d) }}%
+        <div class="sc-mob-tpa-row1">
+          <span class="sc-mob-tpa-tag">TOP SECTOR</span>
+          <span class="sc-mob-tpa-wt-inline">
+            <span class="sc-mob-tpa-wt-fund">{{ n2(topPerform!.portfolioWt) }}%</span>
+            <span class="sc-mob-tpa-vs">vs</span>
+            <span class="sc-mob-tpa-wt-idx">{{ n2(topPerform!.benchmarkWt) }}%</span>
           </span>
         </div>
         <div class="sc-mob-tpa-name">{{ topPerform!.sectorName }}</div>
-        <div class="sc-mob-tpa-wts">
-          <div class="sc-mob-tpa-wt">
-            <span class="sc-mob-tpa-wt-label">PORTFOLIO WT</span>
-            <span class="sc-mob-tpa-wt-val">{{ n2(topPerform!.portfolioWt) }}%</span>
-          </div>
-          <div class="sc-mob-tpa-wt">
-            <span class="sc-mob-tpa-wt-label">BENCHMARK WT</span>
-            <span class="sc-mob-tpa-wt-val">{{ n2(topPerform!.benchmarkWt) }}%</span>
-          </div>
+        <div class="sc-mob-tpa-rets">
+          <ng-container *ngFor="let p of [
+            {lbl:'1D', v: topPerform!.sectorRets.r1d},
+            {lbl:'1W', v: topPerform!.sectorRets.r1w},
+            {lbl:'1M', v: topPerform!.sectorRets.r1m},
+            {lbl:'3M', v: topPerform!.sectorRets.r3m},
+            {lbl:'6M', v: topPerform!.sectorRets.r6m},
+            {lbl:'1Y', v: topPerform!.sectorRets.r1y}
+          ]">
+            <div class="sc-mob-tpa-ret-cell">
+              <span class="sc-mob-tpa-ret-lbl">{{ p.lbl }}</span>
+              <span class="sc-mob-tpa-ret-val"
+                    [class.sc-pos]="p.v >= 0" [class.sc-neg]="p.v < 0">
+                {{ p.v >= 0 ? '+' : '' }}{{ n1(p.v) }}%
+              </span>
+            </div>
+          </ng-container>
         </div>
       </div>
 
-      <!-- Top Sub-Sector -->
+      <!-- Top Security card -->
       <div class="sc-mob-tpa-card sc-mob-tpa-card--sub">
-        <div class="sc-mob-tpa-header">
-          <span class="sc-mob-tpa-tag">TOP SUB-SECTOR</span>
-          <span class="sc-mob-tpa-ret" [class.sc-mob-tpa-ret--pos]="topPerform!.subRet1d >= 0"
-                                       [class.sc-mob-tpa-ret--neg]="topPerform!.subRet1d < 0">
-            1D&nbsp;%&nbsp;&nbsp;{{ topPerform!.subRet1d >= 0 ? '+' : '' }}{{ n2(topPerform!.subRet1d) }}%
+        <div class="sc-mob-tpa-row1">
+          <span class="sc-mob-tpa-tag">TOP SECURITY</span>
+          <span class="sc-mob-tpa-wt-inline">
+            <span class="sc-mob-tpa-wt-fund">{{ n2(topPerform!.secPortWt) }}%</span>
+            <span class="sc-mob-tpa-vs">vs</span>
+            <span class="sc-mob-tpa-wt-idx">{{ n2(topPerform!.secBenchWt) }}%</span>
           </span>
         </div>
-        <div class="sc-mob-tpa-name">{{ topPerform!.subSectorName }}</div>
-        <div class="sc-mob-tpa-wts">
-          <div class="sc-mob-tpa-wt">
-            <span class="sc-mob-tpa-wt-label">PORTFOLIO WT</span>
-            <span class="sc-mob-tpa-wt-val">{{ n2(topPerform!.subPortWt) }}%</span>
-          </div>
-          <div class="sc-mob-tpa-wt">
-            <span class="sc-mob-tpa-wt-label">BENCHMARK WT</span>
-            <span class="sc-mob-tpa-wt-val">{{ n2(topPerform!.subBenchWt) }}%</span>
-          </div>
+        <div class="sc-mob-tpa-name">{{ topPerform!.secName }}</div>
+        <div class="sc-mob-tpa-rets">
+          <ng-container *ngFor="let p of [
+            {lbl:'1D', v: topPerform!.secRets.r1d},
+            {lbl:'1W', v: topPerform!.secRets.r1w},
+            {lbl:'1M', v: topPerform!.secRets.r1m},
+            {lbl:'3M', v: topPerform!.secRets.r3m},
+            {lbl:'6M', v: topPerform!.secRets.r6m},
+            {lbl:'1Y', v: topPerform!.secRets.r1y}
+          ]">
+            <div class="sc-mob-tpa-ret-cell">
+              <span class="sc-mob-tpa-ret-lbl">{{ p.lbl }}</span>
+              <span class="sc-mob-tpa-ret-val"
+                    [class.sc-pos]="p.v >= 0" [class.sc-neg]="p.v < 0">
+                {{ p.v >= 0 ? '+' : '' }}{{ n1(p.v) }}%
+              </span>
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>
