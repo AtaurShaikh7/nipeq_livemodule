@@ -450,7 +450,13 @@
 
     <!-- 4. MARKET CAP EXPOSURE -->
     <div class="sc-mob-section">
-      <div class="sc-mob-section-title">MARKET CAP EXPOSURE</div>
+      <div class="sc-mob-mcap-header">
+        <span class="sc-mob-section-title">MARKET CAP EXPOSURE</span>
+        <span class="sc-mob-mcap-rest"
+              *ngIf="mcapExpDonuts[3].pct > 0">
+          REST ({{ n1(mcapExpDonuts[3].pct) }}%)
+        </span>
+      </div>
       <div class="sc-mob-seg-bar">
         <div class="sc-mob-seg" *ngFor="let s of mcapExpDonuts; let i = index"
              [style.flex]="s.pct" [class]="'sc-mob-seg-' + i">
@@ -458,9 +464,11 @@
         </div>
       </div>
       <div class="sc-mob-seg-labels">
-        <div class="sc-mob-seg-label" *ngFor="let s of mcapExpDonuts; let i = index" [style.flex]="s.pct">
-          <span [class]="'sc-mob-seg-lbl-' + i">{{ s.label === 'Rest' ? 'REST (' + n1(+s.pct) + '%)' : s.label.replace(' Cap','').toUpperCase() }}</span>
-        </div>
+        <ng-container *ngFor="let s of mcapExpDonuts; let i = index">
+          <div class="sc-mob-seg-label" [style.flex]="s.pct" *ngIf="s.label !== 'Rest'">
+            <span [class]="'sc-mob-seg-lbl-' + i">{{ s.label.replace(' Cap','').toUpperCase() }}</span>
+          </div>
+        </ng-container>
       </div>
     </div>
 

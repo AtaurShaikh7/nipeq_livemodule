@@ -2441,6 +2441,28 @@ $sk-shine: rgba(255,255,255,0.04);
     letter-spacing: 0.4px;
   }
 
+  /* 4. Market Cap Exposure — header row with title + REST badge */
+  .sc-mob-mcap-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    .sc-mob-section-title { margin-bottom: 0; }
+  }
+  .sc-mob-mcap-rest {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    background: rgba(148,163,184,0.12);
+    border-radius: 4px;
+    padding: 2px 7px;
+    letter-spacing: 0.3px;
+  }
+  :host:not(.dark) .sc-mob-mcap-rest {
+    color: #64748b;
+    background: rgba(100,116,139,0.1);
+  }
+
   /* 4. Market Cap Exposure segmented bar */
   .sc-mob-seg-bar {
     display: flex;
