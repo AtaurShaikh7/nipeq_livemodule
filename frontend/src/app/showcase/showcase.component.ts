@@ -808,11 +808,17 @@ export class ShowcaseComponent implements OnInit {
       }));
 
     // ── Rating Exposure ──────────────────────────────────────────
+    // Include cash/CBLO rows in the NA bucket so ratings sum to 100%
     const ratingOrder = ['A', 'B', 'C', 'D', 'NA', 'DNA'];
     const rF = new Map<string, number>();
     const rI = new Map<string, number>();
     fundSec.forEach(r => { const k = (r.rating || 'NA').toUpperCase(); rF.set(k, (rF.get(k) ?? 0) + (r.fund_wts ?? 0)); });
     idxSec.forEach(r  => { const k = (r.rating || 'NA').toUpperCase(); rI.set(k, (rI.get(k) ?? 0) + (r.index_wts ?? 0)); });
+    // Add cash rows (CBLO, CASH, etc.) to NA bucket
+    sec.filter(r => isCash(r) && r.fund_flag === 'FUND')
+       .forEach(r => rF.set('NA', (rF.get('NA') ?? 0) + (r.fund_wts ?? 0)));
+    sec.filter(r => isCash(r) && (r.index_wts ?? 0) > 0)
+       .forEach(r => rI.set('NA', (rI.get('NA') ?? 0) + (r.index_wts ?? 0)));
     this.ratingExposure = ratingOrder
       .map(rat => ({ label: rat, fundPct: +(rF.get(rat) ?? 0).toFixed(1), indexPct: +(rI.get(rat) ?? 0).toFixed(1) }))
       .filter(r => r.fundPct > 0 || r.indexPct > 0);
