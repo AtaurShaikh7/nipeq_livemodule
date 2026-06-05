@@ -2624,4 +2624,150 @@ $sk-shine: rgba(255,255,255,0.04);
     border-color: rgba(0,0,0,0.08);
   }
   :host:not(.dark) .sc-mob-tpa-name { color: #0f172a; }
+
+  /* ── Mobile Holdings List ────────────────────────────────── */
+  .sc-mob-holdings {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 80px;
+    min-height: calc(100vh - 112px);
+  }
+
+  /* Search bar */
+  .sc-mob-hl-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 14px 0;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 0 12px;
+    height: 40px;
+  }
+  .sc-mob-hl-search-icon { color: #6b7280; flex-shrink: 0; }
+  .sc-mob-hl-search {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: #f1f5f9;
+    font-size: 13px;
+    font-family: inherit;
+    &::placeholder { color: #6b7280; }
+  }
+  .sc-mob-hl-filter-icon { color: #6b7280; flex-shrink: 0; }
+
+  /* Chips */
+  .sc-mob-hl-chips {
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+    flex-shrink: 0;
+  }
+  .sc-mob-hl-chip {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: none;
+    color: #9ca3af;
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    &--active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #ffffff;
+      font-weight: 600;
+    }
+  }
+
+  /* Grouped list */
+  .sc-mob-hl-list { flex: 1; }
+
+  /* Sector header */
+  .sc-mob-hl-sector-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px 6px;
+    margin-top: 6px;
+  }
+  .sc-mob-hl-sector-name {
+    font-size: 10px;
+    font-weight: 700;
+    color: #2563eb;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .sc-mob-hl-sector-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+  }
+  .sc-mob-hl-sector-wt { color: #6b7280; }
+  .sc-mob-hl-sector-ret { font-weight: 600; }
+
+  /* Security row */
+  .sc-mob-hl-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.02);
+    margin: 1px 0;
+  }
+  .sc-mob-hl-row-left { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+  .sc-mob-hl-row-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sc-mob-hl-row-sub {
+    font-size: 10px;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sc-mob-hl-row-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex-shrink: 0;
+    margin-left: 10px;
+  }
+  .sc-mob-hl-row-price {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1f5f9;
+  }
+  .sc-mob-hl-row-ret {
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* Light mode */
+  :host:not(.dark) .sc-mob-hl-search-wrap {
+    background: rgba(0,0,0,0.05);
+    .sc-mob-hl-search { color: #0f172a; }
+  }
+  :host:not(.dark) .sc-mob-hl-chip {
+    border-color: rgba(0,0,0,0.15);
+    color: #64748b;
+  }
+  :host:not(.dark) .sc-mob-hl-row { background: #ffffff; border-bottom-color: rgba(0,0,0,0.06); }
+  :host:not(.dark) .sc-mob-hl-row-name { color: #0f172a; }
+  :host:not(.dark) .sc-mob-hl-row-price { color: #0f172a; }
 }

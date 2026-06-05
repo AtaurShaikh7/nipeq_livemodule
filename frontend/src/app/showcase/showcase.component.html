@@ -651,10 +651,66 @@
     </div>
   </ng-container>
 
-  <!-- ── AG GRID SECTION (Fund Report tab) ────────────────────── -->
+  <!-- ── MOBILE HOLDINGS LIST ─────────────────────────────────── -->
+  <div class="sc-mob-holdings" *ngIf="mobileNav === 'holdings'">
+    <!-- Search bar -->
+    <div class="sc-mob-hl-search-wrap">
+      <svg class="sc-mob-hl-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="sc-mob-hl-search" type="text" placeholder="Search..."
+             [(ngModel)]="mobHoldingsSearch"/>
+      <svg class="sc-mob-hl-filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+      </svg>
+    </div>
+
+    <!-- Sector filter chips -->
+    <div class="sc-mob-hl-chips">
+      <button class="sc-mob-hl-chip" *ngFor="let chip of holdingsSectorChips"
+              [class.sc-mob-hl-chip--active]="mobHoldingsFilter === chip"
+              (click)="mobHoldingsFilter = chip">
+        {{ chip }}
+      </button>
+    </div>
+
+    <!-- Grouped list -->
+    <div class="sc-mob-hl-list">
+      <ng-container *ngFor="let sec of holdingsFiltered">
+        <!-- Sector header -->
+        <div class="sc-mob-hl-sector-hdr">
+          <span class="sc-mob-hl-sector-name">{{ sec.name }}</span>
+          <div class="sc-mob-hl-sector-meta">
+            <span class="sc-mob-hl-sector-wt">{{ n2(sec.fundWt) }}% Weight</span>
+            <span class="sc-mob-hl-sector-ret"
+                  [class.sc-pos]="sec.ret1d >= 0" [class.sc-neg]="sec.ret1d < 0">
+              {{ sec.ret1d >= 0 ? '+' : '' }}{{ n2(sec.ret1d) }}% 1D
+            </span>
+          </div>
+        </div>
+
+        <!-- Security rows -->
+        <div class="sc-mob-hl-row" *ngFor="let r of sec.rows">
+          <div class="sc-mob-hl-row-left">
+            <span class="sc-mob-hl-row-name">{{ r.name }}</span>
+            <span class="sc-mob-hl-row-sub">{{ r.subSector || sec.name }}</span>
+          </div>
+          <div class="sc-mob-hl-row-right">
+            <span class="sc-mob-hl-row-price">{{ r.cmp > 0 ? ('₹' + (r.cmp | number:'1.2-2')) : '—' }}</span>
+            <span class="sc-mob-hl-row-ret"
+                  [class.sc-pos]="r.ret1d >= 0" [class.sc-neg]="r.ret1d < 0">
+              {{ r.ret1d >= 0 ? '+' : '' }}{{ n2(r.ret1d) }}%
+            </span>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- ── AG GRID SECTION (desktop / tablet only) ──────────────── -->
   <div class="sc-grid-wrap" *ngIf="activeTab === 'fund'" [class.sc-mob-holdings-grid]="true"
        [style.display]="(activeTab === 'fund') ? '' : 'none'"
-       [class.sc-mob-hidden]="mobileNav !== 'holdings'">
+       [class.sc-mob-hidden]="true">
 
     <!-- Skeleton loading overlay -->
     <div class="sc-skeleton-wrap" *ngIf="loading">

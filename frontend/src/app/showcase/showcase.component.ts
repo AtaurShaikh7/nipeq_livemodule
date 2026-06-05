@@ -33,6 +33,13 @@ interface KpiData {
 
 interface RetPeriods { r1d: number; r1w: number; r1m: number; r3m: number; r6m: number; r1y: number; }
 
+interface HoldingsListRow {
+  name: string; subSector: string; cmp: number; ret1d: number; fundWt: number;
+}
+interface HoldingsListSector {
+  name: string; fundWt: number; ret1d: number; rows: HoldingsListRow[];
+}
+
 interface TopPerformData {
   sectorName:  string;
   portfolioWt: number;
@@ -63,6 +70,9 @@ export class ShowcaseComponent implements OnInit {
   mcapFundSegments:   McapSegment[] = [];
   mcapIndexSegments:  McapSegment[] = [];
   topPerform:         TopPerformData | null = null;
+  holdingsSectors:    HoldingsListSector[] = [];
+  mobHoldingsSearch   = '';
+  mobHoldingsFilter   = 'All';
 
   // Sort state
   sectorSort: { col: keyof SectorRow | null; dir: SortDir } = { col: null, dir: null };
@@ -279,6 +289,23 @@ export class ShowcaseComponent implements OnInit {
     return this.ratingExposure.filter(r => r.label === 'C' || r.label === 'D');
   }
   get ratingAll(): RatingRow[] { return this.ratingExposure; }
+
+  get holdingsSectorChips(): string[] {
+    return ['All', ...this.holdingsSectors.map(s => s.name)];
+  }
+
+  get holdingsFiltered(): HoldingsListSector[] {
+    const q = this.mobHoldingsSearch.toLowerCase().trim();
+    return this.holdingsSectors
+      .filter(s => this.mobHoldingsFilter === 'All' || s.name === this.mobHoldingsFilter)
+      .map(s => ({
+        ...s,
+        rows: s.rows.filter(r =>
+          !q || r.name.toLowerCase().includes(q) || r.subSector.toLowerCase().includes(q)
+        ),
+      }))
+      .filter(s => s.rows.length > 0);
+  }
 
   // Mobile nav
   mobileNav: 'summary' | 'holdings' | 'export' = 'summary';
@@ -774,6 +801,36 @@ export class ShowcaseComponent implements OnInit {
       };
     }
     this.topPerform = topPerform;
+
+    // ── Holdings List (mobile holdings tab) ──────────────────────
+    const sectorOrder = [...new Set(
+      dataRows.filter(r => r.is_sector_row === 1 && !isCash({ sector: r.sector } as PortfolioRow))
+              .map(r => r.sector)
+    )];
+    this.holdingsSectors = sectorOrder.map(sName => {
+      const sRows = fundSec.filter(r => r.sector === sName && (r.fund_wts ?? 0) > 0);
+      const totalWt = sRows.reduce((s, r) => s + (r.fund_wts ?? 0), 0);
+      const wavRet1d = totalWt > 0
+        ? sRows.reduce((s, r) => s + (r.fund_wts ?? 0) * (r.ret_1d ?? 0), 0) / totalWt
+        : 0;
+      return {
+        name:   sName,
+        fundWt: +totalWt.toFixed(2),
+        ret1d:  +wavRet1d.toFixed(2),
+        rows:   sRows
+          .sort((a, b) => (b.fund_wts ?? 0) - (a.fund_wts ?? 0))
+          .map(r => ({
+            name:      r.security_name,
+            subSector: r.sub_sector ?? '',
+            cmp:       r.cmp ?? 0,
+            ret1d:     +(r.ret_1d ?? 0),
+            fundWt:    +(r.fund_wts ?? 0).toFixed(2),
+          })),
+      };
+    }).filter(s => s.rows.length > 0);
+    // reset filter when data changes
+    this.mobHoldingsFilter = 'All';
+    this.mobHoldingsSearch = '';
 
     // ── Cos@ >1% WT IN INDEX ─────────────────────────────────────
     const cosMap = new Map<string, PortfolioRow>();
