@@ -35,10 +35,17 @@ interface RetPeriods { r1d: number; r1w: number; r1m: number; r3m: number; r6m: 
 
 interface HoldingsListRow {
   name: string; subSector: string; cmp: number; ret1d: number; fundWt: number;
+  ret1w: number; ret1m: number; ret3m: number; ret6m: number; ret1y: number; retYtd: number;
+  valueCr: number; size: string; rating: string; closePrice: number;
+  mtmChg: number; qty: number; isin: string; mcap: number; avgVol: number;
+  owUw: number; indexWt: number;
 }
 interface HoldingsListSector {
-  name: string; fundWt: number; ret1d: number; rows: HoldingsListRow[];
+  name: string; fundWt: number; indexWt: number; ret1d: number;
+  ret1w: number; ret1m: number; ret3m: number; ret6m: number; ret1y: number; retYtd: number;
+  valueCr: number; rows: HoldingsListRow[];
 }
+interface DetailCell { lbl: string; val: string; cls: string; wide?: boolean; }
 
 interface TopPerformData {
   sectorName:  string;
@@ -73,6 +80,71 @@ export class ShowcaseComponent implements OnInit {
   holdingsSectors:    HoldingsListSector[] = [];
   mobHoldingsSearch   = '';
   mobHoldingsFilter   = 'All';
+  expandedRowIsin     = '';
+  expandedSectorName  = '';
+  mobColFilterOpen    = false;
+  vcOpen              = false;
+
+  // ── Dynamic detail cells based on colVis ─────────────────────
+  private fmt2(v: number): string { return v.toFixed(2); }
+  private rc(v: number): string  { return v > 0 ? 'kpi-pos' : v < 0 ? 'kpi-neg' : ''; }
+  private retFmt(v: number): string { return (v >= 0 ? '+' : '') + v.toFixed(2) + '%'; }
+
+  secDetailCells(r: HoldingsListRow): DetailCell[] {
+    const cells: DetailCell[] = [];
+    for (const col of this.colVis) {
+      if (!col.visible) continue;
+      switch (col.field) {
+        case 'fund_mtm':    cells.push({ lbl: 'VALUE (CR.)', val: this.fmt2(r.valueCr), cls: '' }); break;
+        case 'ret_1d':      cells.push({ lbl: '1D %',  val: this.retFmt(r.ret1d),  cls: this.rc(r.ret1d)  }); break;
+        case 'ret_5d':      cells.push({ lbl: '1W %',  val: this.retFmt(r.ret1w),  cls: this.rc(r.ret1w)  }); break;
+        case 'ret_1m':      cells.push({ lbl: '1M %',  val: this.retFmt(r.ret1m),  cls: this.rc(r.ret1m)  }); break;
+        case 'ret_3m':      cells.push({ lbl: '3M %',  val: this.retFmt(r.ret3m),  cls: this.rc(r.ret3m)  }); break;
+        case 'ret_6m':      cells.push({ lbl: '6M %',  val: this.retFmt(r.ret6m),  cls: this.rc(r.ret6m)  }); break;
+        case 'ret_1y':      cells.push({ lbl: '1Y %',  val: this.retFmt(r.ret1y),  cls: this.rc(r.ret1y)  }); break;
+        case 'ret_ytd':     cells.push({ lbl: 'YTD %', val: this.retFmt(r.retYtd), cls: this.rc(r.retYtd) }); break;
+        case 'size':        cells.push({ lbl: 'SIZE',       val: r.size || '—',  cls: '' }); break;
+        case 'rating':      cells.push({ lbl: 'RATING',     val: r.rating || '—', cls: '' }); break;
+        case 'cmp':         cells.push({ lbl: 'PRICE',      val: r.cmp > 0 ? '₹' + r.cmp.toFixed(2) : '—', cls: '' }); break;
+        case 'close_price': cells.push({ lbl: 'CL. PRICE',  val: r.closePrice > 0 ? '₹' + r.closePrice.toFixed(2) : '—', cls: '' }); break;
+        case 'fund_mtm_chg':cells.push({ lbl: 'MTM CHG.',   val: (r.mtmChg >= 0 ? '+' : '') + this.fmt2(r.mtmChg), cls: this.rc(r.mtmChg) }); break;
+        case 'fund_qty':    cells.push({ lbl: 'QTY.',       val: r.qty > 0 ? r.qty.toLocaleString() : '—', cls: '' }); break;
+        case 'isin_code':   cells.push({ lbl: 'ISIN',       val: r.isin || '—', cls: '', wide: true }); break;
+        case 'fund_wts':    cells.push({ lbl: 'PT. WT. %',  val: this.fmt2(r.fundWt) + '%', cls: '' }); break;
+        case 'index_wts':   cells.push({ lbl: 'BM WT. %',   val: this.fmt2(r.indexWt) + '%', cls: '' }); break;
+        case 'owuw':        cells.push({ lbl: 'OW/UW',      val: this.retFmt(r.owUw), cls: this.rc(r.owUw) }); break;
+        case 'mcap':        cells.push({ lbl: 'MCAP (CR.)', val: r.mcap > 0 ? r.mcap.toFixed(0) : '—', cls: '' }); break;
+        case 'avg_vol':     cells.push({ lbl: '3M ADTV',    val: r.avgVol > 0 ? r.avgVol.toLocaleString() : '—', cls: '' }); break;
+      }
+    }
+    return cells;
+  }
+
+  secDetailCellsSector(s: HoldingsListSector): DetailCell[] {
+    const cells: DetailCell[] = [];
+    const owuw = s.fundWt - s.indexWt;
+    for (const col of this.colVis) {
+      if (!col.visible) continue;
+      switch (col.field) {
+        case 'fund_mtm':    cells.push({ lbl: 'VALUE (CR.)', val: this.fmt2(s.valueCr), cls: '' }); break;
+        case 'ret_1d':      cells.push({ lbl: '1D %',  val: this.retFmt(s.ret1d),  cls: this.rc(s.ret1d)  }); break;
+        case 'ret_5d':      cells.push({ lbl: '1W %',  val: this.retFmt(s.ret1w),  cls: this.rc(s.ret1w)  }); break;
+        case 'ret_1m':      cells.push({ lbl: '1M %',  val: this.retFmt(s.ret1m),  cls: this.rc(s.ret1m)  }); break;
+        case 'ret_3m':      cells.push({ lbl: '3M %',  val: this.retFmt(s.ret3m),  cls: this.rc(s.ret3m)  }); break;
+        case 'ret_6m':      cells.push({ lbl: '6M %',  val: this.retFmt(s.ret6m),  cls: this.rc(s.ret6m)  }); break;
+        case 'ret_1y':      cells.push({ lbl: '1Y %',  val: this.retFmt(s.ret1y),  cls: this.rc(s.ret1y)  }); break;
+        case 'ret_ytd':     cells.push({ lbl: 'YTD %', val: this.retFmt(s.retYtd), cls: this.rc(s.retYtd) }); break;
+        case 'fund_wts':    cells.push({ lbl: 'PT. WT. %', val: this.fmt2(s.fundWt) + '%', cls: '' }); break;
+        case 'index_wts':   cells.push({ lbl: 'BM WT. %',  val: this.fmt2(s.indexWt) + '%', cls: '' }); break;
+        case 'owuw':        cells.push({ lbl: 'OW/UW',     val: this.retFmt(owuw), cls: this.rc(owuw) }); break;
+        case 'size': case 'rating': case 'cmp': case 'close_price':
+        case 'fund_mtm_chg': case 'fund_qty': case 'isin_code':
+        case 'mcap': case 'avg_vol':
+          cells.push({ lbl: col.headerName.toUpperCase(), val: '—', cls: '' }); break;
+      }
+    }
+    return cells;
+  }
 
   // Sort state
   sectorSort: { col: keyof SectorRow | null; dir: SortDir } = { col: null, dir: null };
@@ -304,7 +376,17 @@ export class ShowcaseComponent implements OnInit {
           !q || r.name.toLowerCase().includes(q) || r.subSector.toLowerCase().includes(q)
         ),
       }))
-      .filter(s => s.rows.length > 0);
+      // onlySector: keep sectors even with 0 rows; otherwise drop empty
+      .filter(s => this.onlySector || s.rows.length > 0);
+  }
+
+  // Flat row list for noSector mode
+  get holdingsFlat(): HoldingsListRow[] {
+    const q = this.mobHoldingsSearch.toLowerCase().trim();
+    return this.holdingsSectors
+      .filter(s => this.mobHoldingsFilter === 'All' || s.name === this.mobHoldingsFilter)
+      .flatMap(s => s.rows)
+      .filter(r => !q || r.name.toLowerCase().includes(q) || r.subSector.toLowerCase().includes(q));
   }
 
   // Mobile nav
@@ -494,7 +576,76 @@ export class ShowcaseComponent implements OnInit {
   };
 
   // ── Filter methods ────────────────────────────────────────────
-  onFilterChange(): void { this.applyFilters(); }
+  onFilterChange(): void { this.applyFilters(); this.rebuildHoldingsList(); }
+
+  rebuildHoldingsList(): void {
+    const isCash = (r: PortfolioRow) => (r.sector || '').toUpperCase().includes('CASH');
+    let sec = this.allRows.filter(r => r.is_sector_row === 0 && !isCash(r));
+
+    // Apply selection filter
+    if (this.onlyFund)   sec = sec.filter(r => r.fund_flag === 'FUND');
+    if (this.onlyIndex)  sec = sec.filter(r => (r.index_wts ?? 0) > 0);
+    if (this.noPosition) sec = sec.filter(r => !r.fund_wts || Number(r.fund_wts) === 0);
+
+    const idxSec = this.allRows.filter(r => r.is_sector_row === 0 && (r.index_wts ?? 0) > 0 && !isCash(r));
+
+    // Build sector order from allRows sector headers
+    const sectorOrder = [...new Set(
+      this.allRows.filter(r => r.is_sector_row === 1 && !isCash(r)).map(r => r.sector)
+    )];
+
+    const wavR = (rows: PortfolioRow[], key: keyof PortfolioRow, den: number) =>
+      den > 0 ? +(rows.reduce((s, r) => s + (r.fund_wts ?? 0) * Number(r[key] ?? 0), 0) / den).toFixed(2) : 0;
+
+    const sizeLabel = (s: string | null) =>
+      s === 'LC' ? 'Large Cap' : s === 'MC' ? 'Mid Cap' : s === 'SC' ? 'Small Cap' : (s ?? '—');
+
+    // Build sector → index wt map
+    const sIdxMap = new Map<string, number>();
+    idxSec.forEach(r => sIdxMap.set(r.sector, (sIdxMap.get(r.sector) ?? 0) + (r.index_wts ?? 0)));
+
+    let sectors = sectorOrder.map(sName => {
+      const sRows = sec.filter(r => r.sector === sName && ((r.fund_wts ?? 0) > 0 || this.noPosition || this.onlyIndex));
+      if (sRows.length === 0) return null;
+      const totalWt  = sRows.reduce((s, r) => s + (r.fund_wts ?? 0), 0);
+      const totalIWt = +(sIdxMap.get(sName) ?? 0).toFixed(2);
+      return {
+        name:    sName,
+        fundWt:  +totalWt.toFixed(2),
+        indexWt: totalIWt,
+        ret1d:   wavR(sRows, 'ret_1d',  totalWt),
+        ret1w:   wavR(sRows, 'ret_5d',  totalWt),
+        ret1m:   wavR(sRows, 'ret_1m',  totalWt),
+        ret3m:   wavR(sRows, 'ret_3m',  totalWt),
+        ret6m:   wavR(sRows, 'ret_6m',  totalWt),
+        ret1y:   wavR(sRows, 'ret_1y',  totalWt),
+        retYtd:  wavR(sRows, 'ret_ytd', totalWt),
+        valueCr: +(totalWt * (this.kpi.aumCr || 0) / 100).toFixed(2),
+        rows: sRows
+          .sort((a, b) => (b.fund_wts ?? 0) - (a.fund_wts ?? 0))
+          .map(r => {
+            const fw = r.fund_wts ?? 0; const iw = r.index_wts ?? 0;
+            return {
+              name: r.security_name, subSector: r.sub_sector ?? '', cmp: r.cmp ?? 0,
+              ret1d: +(r.ret_1d ?? 0), fundWt: +fw.toFixed(2),
+              ret1w: +(r.ret_5d ?? 0), ret1m: +(r.ret_1m ?? 0), ret3m: +(r.ret_3m ?? 0),
+              ret6m: +(r.ret_6m ?? 0), ret1y: +(r.ret_1y ?? 0), retYtd: +(r.ret_ytd ?? 0),
+              valueCr: +((r.fund_mtm ?? 0) / 1e7).toFixed(2), size: sizeLabel(r.size),
+              rating: r.rating ?? '—', closePrice: r.close_price ?? 0,
+              mtmChg: r.fund_mtm_chg ?? 0, qty: r.fund_qty ?? 0, isin: r.isin_code ?? '',
+              mcap: +(r.mcap ?? 0), avgVol: r.avg_vol ?? 0,
+              owUw: +((fw - iw)).toFixed(2), indexWt: +iw.toFixed(2),
+            } as HoldingsListRow;
+          }),
+      } as HoldingsListSector;
+    }).filter(Boolean) as HoldingsListSector[];
+
+    // Only Sector mode: keep sector entries but clear individual rows
+    if (this.onlySector) sectors = sectors.map(s => ({ ...s, rows: [] }));
+
+    this.holdingsSectors = sectors;
+    this.mobHoldingsFilter = 'All';
+  }
 
   private applyFilters(): void {
     type Agg = {
@@ -672,6 +823,17 @@ export class ShowcaseComponent implements OnInit {
     });
   }
 
+  onColVisChange(col: { field: string; visible: boolean }): void {
+    if (this.gridApi) this.gridApi.setColumnsVisible([col.field], col.visible);
+  }
+
+  saveNewLayout(): void {
+    // Placeholder — opens new layout panel same as desktop
+    this.showColPanel = false;
+    this.vcOpen = false;
+    // Could open a modal; for now just a no-op that can be wired later
+  }
+
   // ── Compute stats strip ───────────────────────────────────────
   computeStats(rows: PortfolioRow[]): void {
     const sec = rows.filter(r => r.is_sector_row === 0);
@@ -807,25 +969,59 @@ export class ShowcaseComponent implements OnInit {
       dataRows.filter(r => r.is_sector_row === 1 && !isCash({ sector: r.sector } as PortfolioRow))
               .map(r => r.sector)
     )];
+    const wavR = (rows: PortfolioRow[], key: keyof PortfolioRow, den: number) =>
+      den > 0 ? +(rows.reduce((s, r) => s + (r.fund_wts ?? 0) * Number(r[key] ?? 0), 0) / den).toFixed(2) : 0;
+
     this.holdingsSectors = sectorOrder.map(sName => {
-      const sRows = fundSec.filter(r => r.sector === sName && (r.fund_wts ?? 0) > 0);
-      const totalWt = sRows.reduce((s, r) => s + (r.fund_wts ?? 0), 0);
-      const wavRet1d = totalWt > 0
-        ? sRows.reduce((s, r) => s + (r.fund_wts ?? 0) * (r.ret_1d ?? 0), 0) / totalWt
-        : 0;
+      const sRows    = fundSec.filter(r => r.sector === sName && (r.fund_wts ?? 0) > 0);
+      const idxRows  = idxSec.filter(r => r.sector === sName);
+      const totalWt  = sRows.reduce((s, r) => s + (r.fund_wts ?? 0), 0);
+      const totalIWt = idxRows.reduce((s, r) => s + (r.index_wts ?? 0), 0);
       return {
-        name:   sName,
-        fundWt: +totalWt.toFixed(2),
-        ret1d:  +wavRet1d.toFixed(2),
+        name:     sName,
+        fundWt:   +totalWt.toFixed(2),
+        indexWt:  +totalIWt.toFixed(2),
+        ret1d:    wavR(sRows, 'ret_1d',  totalWt),
+        ret1w:    wavR(sRows, 'ret_5d',  totalWt),
+        ret1m:    wavR(sRows, 'ret_1m',  totalWt),
+        ret3m:    wavR(sRows, 'ret_3m',  totalWt),
+        ret6m:    wavR(sRows, 'ret_6m',  totalWt),
+        ret1y:    wavR(sRows, 'ret_1y',  totalWt),
+        retYtd:   wavR(sRows, 'ret_ytd', totalWt),
+        valueCr:  +(totalWt * (this.kpi.aumCr || 0) / 100).toFixed(2),
         rows:   sRows
           .sort((a, b) => (b.fund_wts ?? 0) - (a.fund_wts ?? 0))
-          .map(r => ({
-            name:      r.security_name,
-            subSector: r.sub_sector ?? '',
-            cmp:       r.cmp ?? 0,
-            ret1d:     +(r.ret_1d ?? 0),
-            fundWt:    +(r.fund_wts ?? 0).toFixed(2),
-          })),
+          .map(r => {
+            const fw = r.fund_wts ?? 0;
+            const iw = r.index_wts ?? 0;
+            const sizeLabel = (s: string | null) =>
+              s === 'LC' ? 'Large Cap' : s === 'MC' ? 'Mid Cap' : s === 'SC' ? 'Small Cap' : (s ?? '—');
+            return {
+              name:       r.security_name,
+              subSector:  r.sub_sector ?? '',
+              cmp:        r.cmp ?? 0,
+              ret1d:      +(r.ret_1d ?? 0),
+              fundWt:     +fw.toFixed(2),
+              // detail fields
+              ret1w:      +(r.ret_5d  ?? 0),
+              ret1m:      +(r.ret_1m  ?? 0),
+              ret3m:      +(r.ret_3m  ?? 0),
+              ret6m:      +(r.ret_6m  ?? 0),
+              ret1y:      +(r.ret_1y  ?? 0),
+              valueCr:    +((r.fund_mtm ?? 0) / 1e7).toFixed(2),
+              size:       sizeLabel(r.size),
+              rating:     r.rating ?? '—',
+              closePrice: r.close_price ?? 0,
+              mtmChg:     r.fund_mtm_chg ?? 0,
+              qty:        r.fund_qty ?? 0,
+              isin:       r.isin_code ?? '',
+              mcap:       +(r.mcap ?? 0),
+              avgVol:     r.avg_vol ?? 0,
+              owUw:       +((fw - iw)).toFixed(2),
+              indexWt:    +iw.toFixed(2),
+              retYtd:     +(r.ret_ytd ?? 0),
+            };
+          }),
       };
     }).filter(s => s.rows.length > 0);
     // reset filter when data changes

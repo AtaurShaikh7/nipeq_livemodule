@@ -660,9 +660,27 @@
       </svg>
       <input class="sc-mob-hl-search" type="text" placeholder="Search..."
              [(ngModel)]="mobHoldingsSearch"/>
-      <svg class="sc-mob-hl-filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
-      </svg>
+      <button class="sc-mob-hl-filter-btn" [class.sc-mob-hl-filter-btn--active]="mobColFilterOpen"
+              (click)="mobColFilterOpen = !mobColFilterOpen; $event.stopPropagation()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Column filter panel -->
+    <div class="sc-mob-col-panel" *ngIf="mobColFilterOpen" (click)="$event.stopPropagation()">
+      <div class="sc-mob-col-panel-hdr">
+        <span>COLUMNS</span>
+        <button (click)="mobColFilterOpen = false">✕</button>
+      </div>
+      <div class="sc-mob-col-list">
+        <label class="sc-mob-col-item" *ngFor="let col of colVis">
+          <input type="checkbox" [(ngModel)]="col.visible" (ngModelChange)="onColVisChange(col)">
+          <span class="sc-mob-col-check" [class.sc-mob-col-check--on]="col.visible"></span>
+          {{ col.headerName }}
+        </label>
+      </div>
     </div>
 
     <!-- Sector filter chips -->
@@ -674,36 +692,145 @@
       </button>
     </div>
 
-    <!-- Grouped list -->
-    <div class="sc-mob-hl-list">
+    <!-- No-Sector flat list -->
+    <div class="sc-mob-hl-list" *ngIf="noSector">
+      <ng-container *ngFor="let r of holdingsFlat">
+        <div class="sc-mob-hl-row" [class.sc-mob-hl-row--expanded]="expandedRowIsin === r.isin"
+             (click)="expandedRowIsin = (expandedRowIsin === r.isin ? '' : r.isin); expandedSectorName = ''">
+          <div class="sc-mob-hl-row-left">
+            <span class="sc-mob-hl-row-name">{{ r.name }}</span>
+            <span class="sc-mob-hl-row-sub">{{ r.subSector }}</span>
+          </div>
+          <div class="sc-mob-hl-row-right">
+            <span class="sc-mob-hl-row-price">{{ r.cmp > 0 ? ('₹' + (r.cmp | number:'1.2-2')) : '—' }}</span>
+            <span class="sc-mob-hl-row-ret" [ngClass]="retClass(r.ret1d)">
+              {{ r.ret1d >= 0 ? '+' : '' }}{{ n2(r.ret1d) }}%</span>
+          </div>
+        </div>
+        <div class="sc-mob-hl-detail" *ngIf="expandedRowIsin === r.isin">
+          <div class="sc-mob-hl-det-grid">
+            <ng-container *ngFor="let cell of secDetailCells(r)">
+              <div class="sc-mob-hl-det-cell" [class.sc-mob-hl-det-cell--wide]="cell.wide">
+                <span class="sc-mob-hl-det-lbl">{{ cell.lbl }}</span>
+                <span class="sc-mob-hl-det-val" [ngClass]="cell.cls">{{ cell.val }}</span>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Grouped list (default / onlySector) -->
+    <div class="sc-mob-hl-list" *ngIf="!noSector">
       <ng-container *ngFor="let sec of holdingsFiltered">
-        <!-- Sector header -->
-        <div class="sc-mob-hl-sector-hdr">
+        <!-- Sector header (clickable) -->
+        <div class="sc-mob-hl-sector-hdr"
+             [class.sc-mob-hl-sector-hdr--expanded]="expandedSectorName === sec.name"
+             (click)="expandedSectorName = (expandedSectorName === sec.name ? '' : sec.name); expandedRowIsin = ''">
           <span class="sc-mob-hl-sector-name">{{ sec.name }}</span>
           <div class="sc-mob-hl-sector-meta">
             <span class="sc-mob-hl-sector-wt">{{ n2(sec.fundWt) }}% Weight</span>
-            <span class="sc-mob-hl-sector-ret"
-                  [class.sc-pos]="sec.ret1d >= 0" [class.sc-neg]="sec.ret1d < 0">
+            <span class="sc-mob-hl-sector-ret" [ngClass]="retClass(sec.ret1d)">
               {{ sec.ret1d >= 0 ? '+' : '' }}{{ n2(sec.ret1d) }}% 1D
             </span>
           </div>
         </div>
 
-        <!-- Security rows -->
-        <div class="sc-mob-hl-row" *ngFor="let r of sec.rows">
-          <div class="sc-mob-hl-row-left">
-            <span class="sc-mob-hl-row-name">{{ r.name }}</span>
-            <span class="sc-mob-hl-row-sub">{{ r.subSector || sec.name }}</span>
-          </div>
-          <div class="sc-mob-hl-row-right">
-            <span class="sc-mob-hl-row-price">{{ r.cmp > 0 ? ('₹' + (r.cmp | number:'1.2-2')) : '—' }}</span>
-            <span class="sc-mob-hl-row-ret"
-                  [class.sc-pos]="r.ret1d >= 0" [class.sc-neg]="r.ret1d < 0">
-              {{ r.ret1d >= 0 ? '+' : '' }}{{ n2(r.ret1d) }}%
-            </span>
+        <!-- Sector expanded detail -->
+        <div class="sc-mob-hl-detail" *ngIf="expandedSectorName === sec.name">
+          <div class="sc-mob-hl-det-grid">
+            <ng-container *ngFor="let cell of secDetailCellsSector(sec)">
+              <div class="sc-mob-hl-det-cell" [class.sc-mob-hl-det-cell--wide]="cell.wide">
+                <span class="sc-mob-hl-det-lbl">{{ cell.lbl }}</span>
+                <span class="sc-mob-hl-det-val" [ngClass]="cell.cls">{{ cell.val }}</span>
+              </div>
+            </ng-container>
           </div>
         </div>
+
+        <!-- Security rows -->
+        <ng-container *ngFor="let r of sec.rows">
+          <!-- Collapsed row (always visible) -->
+          <div class="sc-mob-hl-row" [class.sc-mob-hl-row--expanded]="expandedRowIsin === r.isin"
+               (click)="expandedRowIsin = (expandedRowIsin === r.isin ? '' : r.isin)">
+            <div class="sc-mob-hl-row-left">
+              <span class="sc-mob-hl-row-name">{{ r.name }}</span>
+              <span class="sc-mob-hl-row-sub">{{ r.subSector || sec.name }}</span>
+            </div>
+            <div class="sc-mob-hl-row-right">
+              <span class="sc-mob-hl-row-price">{{ r.cmp > 0 ? ('₹' + (r.cmp | number:'1.2-2')) : '—' }}</span>
+              <span class="sc-mob-hl-row-ret" [ngClass]="retClass(r.ret1d)">
+                {{ r.ret1d >= 0 ? '+' : '' }}{{ n2(r.ret1d) }}%
+              </span>
+            </div>
+          </div>
+
+          <!-- Expanded detail card (dynamic — follows colVis) -->
+          <div class="sc-mob-hl-detail" *ngIf="expandedRowIsin === r.isin">
+            <div class="sc-mob-hl-det-grid">
+              <ng-container *ngFor="let cell of secDetailCells(r)">
+                <div class="sc-mob-hl-det-cell" [class.sc-mob-hl-det-cell--wide]="cell.wide">
+                  <span class="sc-mob-hl-det-lbl">{{ cell.lbl }}</span>
+                  <span class="sc-mob-hl-det-val" [ngClass]="cell.cls">{{ cell.val }}</span>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </ng-container>
       </ng-container>
+    </div>
+
+  </div>
+
+  <!-- ── VIEW CONTROLS (fixed above bottom nav, Holdings only) ─── -->
+  <div class="sc-mob-vc" *ngIf="mobileNav === 'holdings'">
+    <div class="sc-mob-vc-hdr" (click)="vcOpen = !vcOpen">
+      <span class="sc-mob-vc-title">VIEW CONTROLS</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           [style.transform]="vcOpen ? 'rotate(180deg)' : 'rotate(0deg)'">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+    <div class="sc-mob-vc-body" *ngIf="vcOpen">
+      <div class="sc-mob-vc-group">
+        <span class="sc-mob-vc-group-lbl">SELECTION</span>
+        <div class="sc-mob-vc-radios">
+          <label class="sc-mob-vc-radio" [class.sc-mob-vc-radio--on]="onlyFund && !noPosition"
+                 (click)="onlyFund=true;onlyIndex=false;noPosition=false;onFilterChange()">
+            <span class="sc-radio" [class.sc-radio--on]="onlyFund && !noPosition"></span>
+            Only Fund
+          </label>
+          <label class="sc-mob-vc-radio" [class.sc-mob-vc-radio--on]="onlyIndex"
+                 (click)="onlyIndex=true;onlyFund=false;noPosition=false;onFilterChange()">
+            <span class="sc-radio" [class.sc-radio--on]="onlyIndex"></span>
+            Only Index
+          </label>
+        </div>
+      </div>
+      <div class="sc-mob-vc-group">
+        <span class="sc-mob-vc-group-lbl">VISIBILITY</span>
+        <div class="sc-mob-vc-chips">
+          <button class="sc-mob-vc-chip" [class.sc-mob-vc-chip--on]="noPosition"
+                  (click)="noPosition=!noPosition;onNoPositionChange()">No position</button>
+          <button class="sc-mob-vc-chip" [class.sc-mob-vc-chip--on]="onlySector"
+                  (click)="onlySector=!onlySector;onOnlySectorChange()">Only Sector</button>
+          <button class="sc-mob-vc-chip" [class.sc-mob-vc-chip--on]="subSector"
+                  (click)="subSector=!subSector;onSubSectorChange()">Sub sector</button>
+          <button class="sc-mob-vc-chip" [class.sc-mob-vc-chip--on]="noSector"
+                  (click)="noSector=!noSector;onNoSectorChange()">No sector</button>
+        </div>
+      </div>
+      <div class="sc-mob-vc-actions">
+        <button class="sc-mob-vc-btn sc-mob-vc-btn--update" (click)="process()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14z"/><polyline points="17 21 17 13 7 13 7 21"/>
+          </svg>
+          UPDATE
+        </button>
+        <button class="sc-mob-vc-btn sc-mob-vc-btn--new" (click)="saveNewLayout()">
+          + NEW
+        </button>
+      </div>
     </div>
   </div>
 
