@@ -45,26 +45,6 @@
   <!-- ── TOP NAV ───────────────────────────────────────────────── -->
   <header class="sc-top-nav">
     <div class="sc-tn-left">
-      <!-- Theme toggle: mobile only — sits on the left -->
-      <button class="sc-theme-toggle sc-mobile-only" [class.dark-active]="darkMode" (click)="toggleDarkMode()">
-        <div class="sc-toggle-track">
-          <svg class="sc-toggle-icon sun" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-          <svg class="sc-toggle-icon moon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-          </svg>
-          <div class="sc-toggle-thumb"></div>
-        </div>
-      </button>
       <img class="sc-tn-logo" src="assets/logo-white.png" alt="ValueAT" />
       <span class="sc-tn-sep">|</span>
       <span class="sc-tn-page sc-desktop-only">Live Portfolio</span>
@@ -96,9 +76,33 @@
         <span class="sc-tn-name">Support Sol...</span>
       </div>
       <!-- Mobile profile button -->
+      <!-- Mobile settings button -->
       <div class="sc-mob-profile-wrap sc-mobile-only" (click)="showLogout = !showLogout; $event.stopPropagation()">
-        <div class="sc-mob-profile-avatar">S</div>
+        <button class="sc-mob-settings-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
         <div class="sc-mob-profile-popup" *ngIf="showLogout" (click)="$event.stopPropagation()">
+          <!-- Day / Night toggle row -->
+          <div class="sc-mob-settings-row" (click)="toggleDarkMode(); $event.stopPropagation()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span>Dark Mode</span>
+            <span class="sc-mob-settings-badge" [class.sc-mob-settings-badge--on]="darkMode">{{ darkMode ? 'ON' : 'OFF' }}</span>
+          </div>
+          <div class="sc-mob-settings-divider"></div>
+          <!-- Sign Out -->
           <button class="sc-mob-profile-signout" (click)="showLogout = false">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
