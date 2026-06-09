@@ -45,7 +45,18 @@
       "Bash(cmd.exe /c \"cd /d D:\\\\Ataur\\\\Project_NipEQ\\\\frontend && npm start 2>&1\")",
       "Bash(sed -i \"s/ModuleRegistry, ClientSideRowModelModule,/ModuleRegistry, ClientSideRowModelModule, TooltipModule,/\" /d/Ataur/Project_NipEQ/frontend/src/app/showcase/showcase.component.ts)",
       "Bash(sed -i \"s/ModuleRegistry.registerModules\\(\\\\[ClientSideRowModelModule\\\\]\\);/ModuleRegistry.registerModules\\([ClientSideRowModelModule, TooltipModule]\\);/\" /d/Ataur/Project_NipEQ/frontend/src/app/showcase/showcase.component.ts)",
-      "Bash(python3 -)"
+      "Bash(python3 -)",
+      "Bash(npx angular-cli-ghpages *)",
+      "Bash(git push *)",
+      "WebFetch(domain:ataurshaikh7.github.io)",
+      "Bash(gh api *)",
+      "Bash(certutil -decode C:\\\\Temp\\\\gh_index_b64.txt C:\\\\Temp\\\\gh_index.html)",
+      "Bash(npm run *)",
+      "Bash(findstr \"base href\")",
+      "PowerShell($b64 = \\(gh api \"repos/AtaurShaikh7/nipeq_livemodule/contents/index.html?ref=gh-pages\" --jq \".content\"\\) -join \"\"; [System.Text.Encoding]::UTF8.GetString\\([System.Convert]::FromBase64String\\($b64\\)\\) | Select-String \"base|script|href\" | Select-Object -First 15)",
+      "Bash(findstr /i \"ssr\\\\|server\\\\|prerender\\\\|appShell\\\\|beasties\" angular.json)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

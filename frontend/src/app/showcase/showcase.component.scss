@@ -1980,7 +1980,7 @@ $sk-shine: rgba(255,255,255,0.04);
   /* Market Cap — smaller bars */
   .kpi-mcap-wrap { gap: 6px; }
   .kpi-mcap-bar-track { height: 36px; }
-  .kpi-mcap-num { font-size: 9px; }
+  .kpi-mcap-num { font-size: 12px; }
   .kpi-mcap-sub { font-size: 6.5px; }
   .kpi-mcap-bar-label { font-size: 8px; }
 
@@ -2533,7 +2533,7 @@ $sk-shine: rgba(255,255,255,0.04);
     height: auto;
   }
   .sc-mob-rat-pct {
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 700;
     color: #e2e8f0;
     line-height: 1;
@@ -2612,10 +2612,10 @@ $sk-shine: rgba(255,255,255,0.04);
     letter-spacing: 0.3px;
   }
   .sc-mob-tpa-ret-val {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
-    &.sc-pos { color: #22c55e; }
-    &.sc-neg { color: #ef4444; }
+    &.sc-pos, &.kpi-pos { color: #22c55e; }
+    &.sc-neg, &.kpi-neg { color: #ef4444; }
   }
 
   /* Light mode */
@@ -2816,6 +2816,8 @@ $sk-shine: rgba(255,255,255,0.04);
     font-size: 12px;
     font-weight: 700;
     color: #f1f5f9;
+    &.kpi-pos { color: #34d399; }
+    &.kpi-neg { color: #f87171; }
   }
 
   /* Light mode */
@@ -2824,7 +2826,11 @@ $sk-shine: rgba(255,255,255,0.04);
     background: #f8fafc;
     border-color: rgba(37,99,235,0.2);
   }
-  :host:not(.dark) .sc-mob-hl-det-val { color: #0f172a; }
+  :host:not(.dark) .sc-mob-hl-det-val {
+    color: #0f172a;
+    &.kpi-pos { color: #16a34a; }
+    &.kpi-neg { color: #dc2626; }
+  }
 
   /* ── Column filter panel ───────────────────────────────────── */
   .sc-mob-hl-filter-btn {

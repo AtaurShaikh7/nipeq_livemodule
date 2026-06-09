@@ -80,9 +80,18 @@ export class ShowcaseComponent implements OnInit {
   holdingsSectors:    HoldingsListSector[] = [];
   mobHoldingsSearch   = '';
   mobHoldingsFilter   = 'All';
-  expandedRowIsin     = '';
-  expandedSectorName  = '';
+  expandedRowIsins:    Set<string> = new Set();
+  expandedSectorNames: Set<string> = new Set();
   mobColFilterOpen    = false;
+
+  toggleExpandRow(isin: string): void {
+    if (this.expandedRowIsins.has(isin)) this.expandedRowIsins.delete(isin);
+    else this.expandedRowIsins.add(isin);
+  }
+  toggleExpandSector(name: string): void {
+    if (this.expandedSectorNames.has(name)) this.expandedSectorNames.delete(name);
+    else this.expandedSectorNames.add(name);
+  }
   vcOpen              = false;
 
   // ── Dynamic detail cells based on colVis ─────────────────────

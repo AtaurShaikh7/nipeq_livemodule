@@ -518,8 +518,7 @@
           ]">
             <div class="sc-mob-tpa-ret-cell">
               <span class="sc-mob-tpa-ret-lbl">{{ p.lbl }}</span>
-              <span class="sc-mob-tpa-ret-val"
-                    [class.sc-pos]="p.v >= 0" [class.sc-neg]="p.v < 0">
+              <span class="sc-mob-tpa-ret-val" [ngClass]="retClass(p.v)">
                 {{ p.v >= 0 ? '+' : '' }}{{ n1(p.v) }}%
               </span>
             </div>
@@ -549,8 +548,7 @@
           ]">
             <div class="sc-mob-tpa-ret-cell">
               <span class="sc-mob-tpa-ret-lbl">{{ p.lbl }}</span>
-              <span class="sc-mob-tpa-ret-val"
-                    [class.sc-pos]="p.v >= 0" [class.sc-neg]="p.v < 0">
+              <span class="sc-mob-tpa-ret-val" [ngClass]="retClass(p.v)">
                 {{ p.v >= 0 ? '+' : '' }}{{ n1(p.v) }}%
               </span>
             </div>
@@ -668,6 +666,8 @@
       </button>
     </div>
 
+    <!-- Column filter backdrop — closes panel on outside click -->
+    <div *ngIf="mobColFilterOpen" style="position:fixed;inset:0;z-index:499" (click)="mobColFilterOpen = false"></div>
     <!-- Column filter panel -->
     <div class="sc-mob-col-panel" *ngIf="mobColFilterOpen" (click)="$event.stopPropagation()">
       <div class="sc-mob-col-panel-hdr">
@@ -695,8 +695,8 @@
     <!-- No-Sector flat list -->
     <div class="sc-mob-hl-list" *ngIf="noSector">
       <ng-container *ngFor="let r of holdingsFlat">
-        <div class="sc-mob-hl-row" [class.sc-mob-hl-row--expanded]="expandedRowIsin === r.isin"
-             (click)="expandedRowIsin = (expandedRowIsin === r.isin ? '' : r.isin); expandedSectorName = ''">
+        <div class="sc-mob-hl-row" [class.sc-mob-hl-row--expanded]="expandedRowIsins.has(r.isin)"
+             (click)="toggleExpandRow(r.isin)">
           <div class="sc-mob-hl-row-left">
             <span class="sc-mob-hl-row-name">{{ r.name }}</span>
             <span class="sc-mob-hl-row-sub">{{ r.subSector }}</span>
@@ -707,7 +707,7 @@
               {{ r.ret1d >= 0 ? '+' : '' }}{{ n2(r.ret1d) }}%</span>
           </div>
         </div>
-        <div class="sc-mob-hl-detail" *ngIf="expandedRowIsin === r.isin">
+        <div class="sc-mob-hl-detail" *ngIf="expandedRowIsins.has(r.isin)">
           <div class="sc-mob-hl-det-grid">
             <ng-container *ngFor="let cell of secDetailCells(r)">
               <div class="sc-mob-hl-det-cell" [class.sc-mob-hl-det-cell--wide]="cell.wide">
@@ -725,8 +725,8 @@
       <ng-container *ngFor="let sec of holdingsFiltered">
         <!-- Sector header (clickable) -->
         <div class="sc-mob-hl-sector-hdr"
-             [class.sc-mob-hl-sector-hdr--expanded]="expandedSectorName === sec.name"
-             (click)="expandedSectorName = (expandedSectorName === sec.name ? '' : sec.name); expandedRowIsin = ''">
+             [class.sc-mob-hl-sector-hdr--expanded]="expandedSectorNames.has(sec.name)"
+             (click)="toggleExpandSector(sec.name)">
           <span class="sc-mob-hl-sector-name">{{ sec.name }}</span>
           <div class="sc-mob-hl-sector-meta">
             <span class="sc-mob-hl-sector-wt">{{ n2(sec.fundWt) }}% Weight</span>
@@ -737,7 +737,7 @@
         </div>
 
         <!-- Sector expanded detail -->
-        <div class="sc-mob-hl-detail" *ngIf="expandedSectorName === sec.name">
+        <div class="sc-mob-hl-detail" *ngIf="expandedSectorNames.has(sec.name)">
           <div class="sc-mob-hl-det-grid">
             <ng-container *ngFor="let cell of secDetailCellsSector(sec)">
               <div class="sc-mob-hl-det-cell" [class.sc-mob-hl-det-cell--wide]="cell.wide">
@@ -751,8 +751,8 @@
         <!-- Security rows -->
         <ng-container *ngFor="let r of sec.rows">
           <!-- Collapsed row (always visible) -->
-          <div class="sc-mob-hl-row" [class.sc-mob-hl-row--expanded]="expandedRowIsin === r.isin"
-               (click)="expandedRowIsin = (expandedRowIsin === r.isin ? '' : r.isin)">
+          <div class="sc-mob-hl-row" [class.sc-mob-hl-row--expanded]="expandedRowIsins.has(r.isin)"
+               (click)="toggleExpandRow(r.isin)">
             <div class="sc-mob-hl-row-left">
               <span class="sc-mob-hl-row-name">{{ r.name }}</span>
               <span class="sc-mob-hl-row-sub">{{ r.subSector || sec.name }}</span>
@@ -766,7 +766,7 @@
           </div>
 
           <!-- Expanded detail card (dynamic — follows colVis) -->
-          <div class="sc-mob-hl-detail" *ngIf="expandedRowIsin === r.isin">
+          <div class="sc-mob-hl-detail" *ngIf="expandedRowIsins.has(r.isin)">
             <div class="sc-mob-hl-det-grid">
               <ng-container *ngFor="let cell of secDetailCells(r)">
                 <div class="sc-mob-hl-det-cell" [class.sc-mob-hl-det-cell--wide]="cell.wide">
@@ -787,7 +787,7 @@
     <div class="sc-mob-vc-hdr" (click)="vcOpen = !vcOpen">
       <span class="sc-mob-vc-title">VIEW CONTROLS</span>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           [style.transform]="vcOpen ? 'rotate(180deg)' : 'rotate(0deg)'">
+           [style.transform]="vcOpen ? 'rotate(0deg)' : 'rotate(180deg)'">
         <polyline points="6 9 12 15 18 9"/>
       </svg>
     </div>
