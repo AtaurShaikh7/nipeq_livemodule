@@ -45,19 +45,33 @@
   <!-- ── TOP NAV ───────────────────────────────────────────────── -->
   <header class="sc-top-nav">
     <div class="sc-tn-left">
-      <!-- Mobile hamburger -->
-      <button class="sc-mob-icon-btn sc-mobile-only" style="margin-right:4px" (click)="mobileDrawerOpen = true; $event.stopPropagation()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
+      <!-- Theme toggle: mobile only — sits on the left -->
+      <button class="sc-theme-toggle sc-mobile-only" [class.dark-active]="darkMode" (click)="toggleDarkMode()">
+        <div class="sc-toggle-track">
+          <svg class="sc-toggle-icon sun" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <svg class="sc-toggle-icon moon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+          </svg>
+          <div class="sc-toggle-thumb"></div>
+        </div>
       </button>
       <img class="sc-tn-logo" src="assets/logo-white.png" alt="ValueAT" />
       <span class="sc-tn-sep">|</span>
       <span class="sc-tn-page sc-desktop-only">Live Portfolio</span>
     </div>
     <div class="sc-tn-right">
-      <!-- Theme toggle (both desktop and mobile) -->
-      <button class="sc-theme-toggle" [class.dark-active]="darkMode" (click)="toggleDarkMode()">
+      <!-- Theme toggle: desktop only -->
+      <button class="sc-theme-toggle sc-desktop-only" [class.dark-active]="darkMode" (click)="toggleDarkMode()">
         <div class="sc-toggle-track">
           <svg class="sc-toggle-icon sun" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
             <circle cx="12" cy="12" r="5"/>
@@ -81,8 +95,24 @@
         <div class="sc-tn-avatar">S</div>
         <span class="sc-tn-name">Support Sol...</span>
       </div>
+      <!-- Mobile profile button -->
+      <div class="sc-mob-profile-wrap sc-mobile-only" (click)="showLogout = !showLogout; $event.stopPropagation()">
+        <div class="sc-mob-profile-avatar">S</div>
+        <div class="sc-mob-profile-popup" *ngIf="showLogout" (click)="$event.stopPropagation()">
+          <button class="sc-mob-profile-signout" (click)="showLogout = false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Sign Out
+          </button>
+        </div>
+      </div>
     </div>
   </header>
+  <!-- Profile popup backdrop -->
+  <div *ngIf="showLogout" style="position:fixed;inset:0;z-index:299" (click)="showLogout = false"></div>
 
   <!-- ── MOBILE COLLAPSED HEADER ─────────────────────────────── -->
   <div class="sc-mobile-collapsed-bar" *ngIf="controlsCollapsed" (click)="expandControls()">
@@ -574,18 +604,25 @@
       </div>
       <div class="sc-mob-sa-table">
         <div class="sc-mob-sa-thead">
-          <span class="sc-mob-sa-th sc-mob-sa-th--wide">SECTOR</span>
-          <span class="sc-mob-sa-th">IDX%</span>
-          <span class="sc-mob-sa-th">FUND%</span>
-          <span class="sc-mob-sa-th">OW/UW</span>
+          <button class="sc-mob-sa-th sc-mob-sa-th--wide sc-mob-sa-sort-btn" (click)="sortSector('sector')">SECTOR <span class="sc-mob-sort-icon">{{ sortIcon(sectorSort, 'sector') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortSector('indexPct')">IDX% <span class="sc-mob-sort-icon">{{ sortIcon(sectorSort, 'indexPct') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortSector('fundPct')">FUND% <span class="sc-mob-sort-icon">{{ sortIcon(sectorSort, 'fundPct') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortSector('owUw')">OW/UW <span class="sc-mob-sort-icon">{{ sortIcon(sectorSort, 'owUw') }}</span></button>
         </div>
-        <div class="sc-mob-sa-row" *ngFor="let r of sectorPattern; let i = index" [class.sc-mob-sa-row--alt]="i%2===1">
+        <div class="sc-mob-sa-row" *ngFor="let r of (showAllSectors ? sectorPattern : sectorPattern.slice(0,6)); let i = index"
+             [class.sc-mob-sa-row--alt]="i%2===1">
           <span class="sc-mob-sa-td--name">{{ r.sector }}</span>
-          <span class="sc-mob-sa-td">{{ n2(r.indexPct) }}</span>
-          <span class="sc-mob-sa-td">{{ n2(r.fundPct) }}</span>
+          <span class="sc-mob-sa-td sc-mob-sa-td--num">{{ n2(r.indexPct) }}</span>
+          <span class="sc-mob-sa-td sc-mob-sa-td--num">{{ n2(r.fundPct) }}</span>
           <span class="sc-mob-sa-td sc-mob-sa-owuw" [ngClass]="owClass(r.owUw)">{{ r.owUw > 0 ? '+' : '' }}{{ n2(r.owUw) }}</span>
         </div>
       </div>
+      <button class="sc-mob-view-all-btn" *ngIf="!showAllSectors && sectorPattern.length > 6" (click)="showAllSectors = true; $event.stopPropagation()">
+        VIEW ALL {{ sectorPattern.length }} SECTORS &rarr;
+      </button>
+      <button class="sc-mob-view-all-btn sc-mob-view-all-btn--less" *ngIf="showAllSectors" (click)="showAllSectors = false; $event.stopPropagation()">
+        &uarr; VIEW LESS
+      </button>
     </div>
 
     <!-- 2. Top 20 Stocks -->
@@ -599,23 +636,26 @@
       </div>
       <div class="sc-mob-sa-table">
         <div class="sc-mob-sa-thead">
-          <span class="sc-mob-sa-th sc-mob-sa-th--wide">COMPANY</span>
-          <span class="sc-mob-sa-th">RATING</span>
-          <span class="sc-mob-sa-th">IDX%</span>
-          <span class="sc-mob-sa-th">FUND%</span>
+          <button class="sc-mob-sa-th sc-mob-sa-th--wide sc-mob-sa-sort-btn" (click)="sortTop20('company')">COMPANY <span class="sc-mob-sort-icon">{{ sortIcon(top20Sort, 'company') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortTop20('rating')">RATING <span class="sc-mob-sort-icon">{{ sortIcon(top20Sort, 'rating') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortTop20('indexPct')">IDX% <span class="sc-mob-sort-icon">{{ sortIcon(top20Sort, 'indexPct') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortTop20('fundPct')">FUND% <span class="sc-mob-sort-icon">{{ sortIcon(top20Sort, 'fundPct') }}</span></button>
         </div>
-        <div class="sc-mob-sa-row" *ngFor="let r of (showAllTop20 ? top20Stocks : top20Stocks.slice(0,5)); let i = index"
+        <div class="sc-mob-sa-row" *ngFor="let r of (showAllTop20 ? top20Stocks : top20Stocks.slice(0,6)); let i = index"
              [class.sc-mob-sa-row--alt]="i%2===1">
           <span class="sc-mob-sa-td--name">{{ r.company }}</span>
-          <span class="sc-mob-sa-td sc-mob-sa-td--center">
+          <span class="sc-mob-sa-td">
             <span class="rat-badge" [ngClass]="ratingClass(r.rating)">{{ r.rating }}</span>
           </span>
           <span class="sc-mob-sa-td">{{ n2(r.indexPct) }}%</span>
           <span class="sc-mob-sa-td">{{ n2(r.fundPct) }}%</span>
         </div>
       </div>
-      <button class="sc-mob-view-all-btn" *ngIf="!showAllTop20" (click)="showAllTop20 = true; $event.stopPropagation()">
-        VIEW ALL 20 STOCKS &rarr;
+      <button class="sc-mob-view-all-btn" *ngIf="!showAllTop20 && top20Stocks.length > 6" (click)="showAllTop20 = true; $event.stopPropagation()">
+        VIEW ALL {{ top20Stocks.length }} STOCKS &rarr;
+      </button>
+      <button class="sc-mob-view-all-btn sc-mob-view-all-btn--less" *ngIf="showAllTop20" (click)="showAllTop20 = false; $event.stopPropagation()">
+        &uarr; VIEW LESS
       </button>
     </div>
 
@@ -629,13 +669,13 @@
       </div>
       <div class="sc-mob-sa-table sc-mob-sa-table--perf">
         <div class="sc-mob-sa-thead">
-          <span class="sc-mob-sa-th sc-mob-sa-th--wide">PERIOD</span>
-          <span class="sc-mob-sa-th">1M</span>
-          <span class="sc-mob-sa-th">6M</span>
-          <span class="sc-mob-sa-th">1Y</span>
-          <span class="sc-mob-sa-th">3Y</span>
+          <button class="sc-mob-sa-th sc-mob-sa-th--wide sc-mob-sa-sort-btn" (click)="sortPerf('peer')">PERIOD <span class="sc-mob-sort-icon">{{ sortIcon(perfSort, 'peer') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortPerf('m1')">1M <span class="sc-mob-sort-icon">{{ sortIcon(perfSort, 'm1') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortPerf('m6')">6M <span class="sc-mob-sort-icon">{{ sortIcon(perfSort, 'm6') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortPerf('y1')">1Y <span class="sc-mob-sort-icon">{{ sortIcon(perfSort, 'y1') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortPerf('y3')">3Y <span class="sc-mob-sort-icon">{{ sortIcon(perfSort, 'y3') }}</span></button>
         </div>
-        <div class="sc-mob-sa-row" *ngFor="let r of historicalPerf; let i = index"
+        <div class="sc-mob-sa-row" *ngFor="let r of (showAllPerf ? historicalPerf : historicalPerf.slice(0,6)); let i = index"
              [class.sc-mob-sa-row--hl]="r.isHighlight"
              [class.sc-mob-sa-row--idx]="r.isIndex"
              [class.sc-mob-sa-row--alt]="i%2===1 && !r.isHighlight && !r.isIndex">
@@ -646,9 +686,47 @@
           <span class="sc-mob-sa-td sc-mob-sa-ret" [ngClass]="retClass(r.y3 ?? 0)">{{ perfFmt(r.y3) }}</span>
         </div>
       </div>
+      <button class="sc-mob-view-all-btn" *ngIf="!showAllPerf && historicalPerf.length > 6" (click)="showAllPerf = true; $event.stopPropagation()">
+        VIEW ALL {{ historicalPerf.length }} PEERS &rarr;
+      </button>
+      <button class="sc-mob-view-all-btn sc-mob-view-all-btn--less" *ngIf="showAllPerf" (click)="showAllPerf = false; $event.stopPropagation()">
+        &uarr; VIEW LESS
+      </button>
     </div>
 
-    <!-- 4. Rating Exposure -->
+    <!-- 4. Cos@ >1% WT in Index -->
+    <div class="sc-mob-section">
+      <div class="sc-mob-section-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Cos&#64; &gt;1% WT in Index
+      </div>
+      <div class="sc-mob-sa-table">
+        <div class="sc-mob-sa-thead">
+          <button class="sc-mob-sa-th sc-mob-sa-th--wide sc-mob-sa-sort-btn" (click)="sortCosGt1('company')">COMPANY <span class="sc-mob-sort-icon">{{ sortIcon(cosGt1Sort, 'company') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortCosGt1('rating')">RATING <span class="sc-mob-sort-icon">{{ sortIcon(cosGt1Sort, 'rating') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortCosGt1('indexPct')">IDX% <span class="sc-mob-sort-icon">{{ sortIcon(cosGt1Sort, 'indexPct') }}</span></button>
+          <button class="sc-mob-sa-th sc-mob-sa-sort-btn" (click)="sortCosGt1('fundPct')">FUND% <span class="sc-mob-sort-icon">{{ sortIcon(cosGt1Sort, 'fundPct') }}</span></button>
+        </div>
+        <div class="sc-mob-sa-row" *ngFor="let r of (showAllCosGt1 ? cosGt1 : cosGt1.slice(0,6)); let i = index" [class.sc-mob-sa-row--alt]="i%2===1">
+          <span class="sc-mob-sa-td--name">{{ r.company }}</span>
+          <span class="sc-mob-sa-td">
+            <span class="rat-badge" [ngClass]="ratingClass(r.rating)">{{ r.rating }}</span>
+          </span>
+          <span class="sc-mob-sa-td">{{ n2(r.indexPct) }}%</span>
+          <span class="sc-mob-sa-td">{{ n2(r.fundPct) }}%</span>
+        </div>
+      </div>
+      <button class="sc-mob-view-all-btn" *ngIf="!showAllCosGt1 && cosGt1.length > 6" (click)="showAllCosGt1 = true; $event.stopPropagation()">
+        VIEW ALL {{ cosGt1.length }} COMPANIES &rarr;
+      </button>
+      <button class="sc-mob-view-all-btn sc-mob-view-all-btn--less" *ngIf="showAllCosGt1" (click)="showAllCosGt1 = false; $event.stopPropagation()">
+        &uarr; VIEW LESS
+      </button>
+    </div>
+
+    <!-- 5. Rating Exposure -->
     <div class="sc-mob-section">
       <div class="sc-mob-section-title">Rating Exposure</div>
       <div class="sc-mob-sa-legend">
@@ -674,8 +752,8 @@
       </div>
     </div>
 
-    <!-- 5. Holdings Pattern -->
-    <div class="sc-mob-section">
+    <!-- 6. Holdings Pattern -->
+    <div class="sc-mob-section" style="margin-bottom:80px">
       <div class="sc-mob-section-title">Holdings Pattern</div>
       <div class="sc-mob-sa-legend">
         <span><span class="hb-dot fund"></span>Fund</span>
@@ -696,32 +774,6 @@
             <span>{{ n1(r.fundPct) }}%</span>
             <span>{{ n1(r.indexPct) }}%</span>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 6. Cos@ >1% WT in Index -->
-    <div class="sc-mob-section" style="margin-bottom:80px">
-      <div class="sc-mob-section-title">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        Cos&#64; &gt;1% WT in Index
-      </div>
-      <div class="sc-mob-sa-table">
-        <div class="sc-mob-sa-thead">
-          <span class="sc-mob-sa-th sc-mob-sa-th--wide">COMPANY</span>
-          <span class="sc-mob-sa-th">RATING</span>
-          <span class="sc-mob-sa-th">IDX%</span>
-          <span class="sc-mob-sa-th">FUND%</span>
-        </div>
-        <div class="sc-mob-sa-row" *ngFor="let r of cosGt1; let i = index" [class.sc-mob-sa-row--alt]="i%2===1">
-          <span class="sc-mob-sa-td--name">{{ r.company }}</span>
-          <span class="sc-mob-sa-td sc-mob-sa-td--center">
-            <span class="rat-badge" [ngClass]="ratingClass(r.rating)">{{ r.rating }}</span>
-          </span>
-          <span class="sc-mob-sa-td">{{ n2(r.indexPct) }}%</span>
-          <span class="sc-mob-sa-td">{{ n2(r.fundPct) }}%</span>
         </div>
       </div>
     </div>
@@ -952,25 +1004,29 @@
   </div>
 
   <!-- ── VIEW CONTROLS (fixed above bottom nav, Holdings only) ─── -->
+  <!-- View-controls outside-click backdrop -->
+  <div *ngIf="vcOpen" style="position:fixed;inset:0;z-index:149" (click)="vcOpen = false"></div>
+
   <div class="sc-mob-vc" *ngIf="mobileNav === 'holdings'">
-    <div class="sc-mob-vc-hdr" (click)="vcOpen = !vcOpen">
+    <div class="sc-mob-vc-hdr" (click)="vcOpen = !vcOpen; $event.stopPropagation()">
       <span class="sc-mob-vc-title">VIEW CONTROLS</span>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            [style.transform]="vcOpen ? 'rotate(0deg)' : 'rotate(180deg)'">
         <polyline points="6 9 12 15 18 9"/>
       </svg>
     </div>
-    <div class="sc-mob-vc-body" *ngIf="vcOpen">
+    <div class="sc-mob-vc-body" *ngIf="vcOpen" (click)="$event.stopPropagation()">
       <div class="sc-mob-vc-group">
         <span class="sc-mob-vc-group-lbl">SELECTION</span>
         <div class="sc-mob-vc-radios">
           <label class="sc-mob-vc-radio" [class.sc-mob-vc-radio--on]="onlyFund && !noPosition"
-                 (click)="onlyFund=true;onlyIndex=false;noPosition=false;onFilterChange()">
+                 [class.sc-mob-vc-radio--locked]="noPosition"
+                 (click)="onlyFund = noPosition ? onlyFund : !onlyFund; onFilterChange()">
             <span class="sc-radio" [class.sc-radio--on]="onlyFund && !noPosition"></span>
             Only Fund
           </label>
           <label class="sc-mob-vc-radio" [class.sc-mob-vc-radio--on]="onlyIndex"
-                 (click)="onlyIndex=true;onlyFund=false;noPosition=false;onFilterChange()">
+                 (click)="onlyIndex=!onlyIndex;onFilterChange()">
             <span class="sc-radio" [class.sc-radio--on]="onlyIndex"></span>
             Only Index
           </label>
@@ -1422,7 +1478,7 @@
     </button>
     <!-- Style Analysis -->
     <button class="sc-mob-nav-item" [class.sc-mob-nav-item--active]="mobileNav === 'style'"
-            (click)="mobileNav = 'style'; mobileSearchOpen = false; mobileFiltersOpen = false; mobileExportOpen = false; showAllTop20 = false">
+            (click)="mobileNav = 'style'; mobileSearchOpen = false; mobileFiltersOpen = false; mobileExportOpen = false; showAllTop20 = false; showAllSectors = false; showAllPerf = false; showAllCosGt1 = false">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
         <circle cx="12" cy="12" r="3"/>
         <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
@@ -1460,7 +1516,7 @@
         Fund Report
       </button>
       <button class="sc-mob-drawer-item" [class.sc-mob-drawer-item--active]="mobileNav === 'style'"
-              (click)="mobileNav = 'style'; showAllTop20 = false; mobileDrawerOpen = false">
+              (click)="mobileNav = 'style'; showAllTop20 = false; showAllSectors = false; showAllPerf = false; showAllCosGt1 = false; mobileDrawerOpen = false">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <circle cx="12" cy="12" r="3"/>
           <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>

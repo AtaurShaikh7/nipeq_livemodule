@@ -400,7 +400,10 @@ export class ShowcaseComponent implements OnInit {
 
   // Mobile nav
   mobileNav: 'summary' | 'holdings' | 'style' | 'export' = 'summary';
-  showAllTop20 = false;
+  showAllTop20    = false;
+  showAllSectors  = false;
+  showAllPerf     = false;
+  showAllCosGt1   = false;
   mobileDrawerOpen = false;
   showLogout = false;
   get owMax(): number {
