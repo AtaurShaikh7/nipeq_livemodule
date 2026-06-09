@@ -399,7 +399,8 @@ export class ShowcaseComponent implements OnInit {
   }
 
   // Mobile nav
-  mobileNav: 'summary' | 'holdings' | 'export' = 'summary';
+  mobileNav: 'summary' | 'holdings' | 'style' | 'export' = 'summary';
+  showAllTop20 = false;
   mobileDrawerOpen = false;
   showLogout = false;
   get owMax(): number {
@@ -1199,6 +1200,10 @@ export class ShowcaseComponent implements OnInit {
   owClass(v: number): string { return v > 0 ? 'pos' : v < 0 ? 'neg' : 'zero'; }
   retClass(v: number): string { return v > 0 ? 'kpi-pos' : v < 0 ? 'kpi-neg' : 'kpi-zero'; }
   retColor(v: number): string { return v >= 0 ? '#34d399' : '#f87171'; }
+  perfFmt(v: number | null | undefined): string {
+    if (v == null) return '—';
+    return (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+  }
   donutTransform(v: number): string {
     return v < 0
       ? 'rotate(-90 22 22) translate(44,0) scale(-1,1)'
